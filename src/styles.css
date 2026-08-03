@@ -1,0 +1,734 @@
+:root {
+  font-family: Inter, "SF Pro Display", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: #151515;
+  background: #efece5;
+  font-synthesis: none;
+  --ink: #151515;
+  --paper: #f7f4ee;
+  --line: #d8d3c8;
+  --muted: #746f65;
+  --orange: #ff5a1f;
+  --orange-soft: #fff0e8;
+  --green: #15835e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  background:
+    linear-gradient(rgba(21, 21, 21, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(21, 21, 21, 0.035) 1px, transparent 1px),
+    #efece5;
+  background-size: 28px 28px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(255, 90, 31, 0.25);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 22px;
+}
+
+.topbar {
+  max-width: 1540px;
+  min-height: 76px;
+  margin: 0 auto 16px;
+  padding: 0 22px;
+  border: 1px solid var(--ink);
+  background: rgba(247, 244, 238, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: white;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+.eyebrow {
+  margin: 0 0 2px;
+  color: var(--orange);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.privacy-badge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid #a8c9bb;
+  color: #11694c;
+  background: #e7f5ee;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.privacy-badge svg {
+  font-size: 17px;
+}
+
+.app-grid {
+  max-width: 1540px;
+  min-height: calc(100vh - 114px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(380px, 470px) minmax(620px, 1fr);
+  gap: 16px;
+}
+
+.control-panel,
+.preview-panel {
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  min-width: 0;
+}
+
+.control-panel {
+  max-height: calc(100vh - 114px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.panel-section {
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-section:last-child {
+  border-bottom: 0;
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 15px;
+}
+
+.section-heading.compact {
+  margin-bottom: 12px;
+}
+
+.step-number {
+  flex: 0 0 auto;
+  padding-top: 3px;
+  color: var(--orange);
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.section-heading h2 {
+  margin: 0 0 3px;
+  font-size: 15px;
+  letter-spacing: -0.025em;
+}
+
+.section-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--ink);
+  background: #e9e5dd;
+  padding: 3px;
+}
+
+.segmented-control button {
+  min-height: 40px;
+  border: 0;
+  background: transparent;
+  color: #716c63;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.segmented-control button.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr 42px;
+  gap: 8px;
+}
+
+.search-box {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid #bab4a8;
+  background: #fffefa;
+}
+
+.search-box:focus-within {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(255, 90, 31, 0.1);
+}
+
+.search-box svg {
+  flex: 0 0 auto;
+  color: #7e786d;
+}
+
+.search-box input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 12px;
+}
+
+.icon-button {
+  border: 1px solid var(--ink);
+  background: #fffefa;
+  cursor: pointer;
+  font-size: 19px;
+}
+
+.icon-button:hover {
+  color: white;
+  background: var(--orange);
+}
+
+.tweet-list {
+  max-height: 244px;
+  margin-top: 9px;
+  border: 1px solid var(--line);
+  overflow-y: auto;
+  background: #ede9e1;
+}
+
+.tweet-list-item {
+  width: 100%;
+  padding: 11px 12px;
+  border: 0;
+  border-bottom: 1px solid #d9d4ca;
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  column-gap: 10px;
+  row-gap: 4px;
+  text-align: left;
+  background: #fffefa;
+  cursor: pointer;
+}
+
+.tweet-list-item:last-child {
+  border-bottom: 0;
+}
+
+.tweet-list-item:hover {
+  background: #fff7f1;
+}
+
+.tweet-list-item.selected {
+  background: var(--orange-soft);
+  box-shadow: inset 4px 0 0 var(--orange);
+}
+
+.item-date,
+.item-stats {
+  color: #817b70;
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 10px;
+}
+
+.item-date {
+  grid-row: span 2;
+  padding-top: 2px;
+}
+
+.tweet-list-item strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.empty-state {
+  padding: 30px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.editor-section textarea {
+  width: 100%;
+  min-height: 210px;
+  resize: vertical;
+  padding: 13px;
+  border: 1px solid #aaa397;
+  outline: 0;
+  background: #fffefa;
+  color: #292723;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.editor-section textarea:focus {
+  border-color: var(--orange);
+}
+
+.secondary-button {
+  width: auto;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #fffefa;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.editor-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.editor-actions > span {
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 10px;
+}
+
+.secondary-button:hover {
+  color: white;
+  background: var(--ink);
+}
+
+.range-label {
+  display: grid;
+  gap: 8px;
+}
+
+.range-label span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.range-label b {
+  color: var(--orange);
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+}
+
+.range-label input {
+  accent-color: var(--orange);
+}
+
+.auto-metrics-card {
+  margin-top: 15px;
+  padding: 11px;
+  border: 1px solid #d7b09f;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: #fff0e8;
+}
+
+.auto-metrics-card div {
+  display: grid;
+  gap: 3px;
+}
+
+.auto-metrics-card strong {
+  font-size: 12px;
+}
+
+.auto-metrics-card span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.auto-metrics-card button {
+  min-height: 31px;
+  padding: 0 9px;
+  border: 1px solid var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: white;
+  background: var(--ink);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.preview-panel {
+  min-height: 620px;
+  display: grid;
+  grid-template-rows: 52px 1fr auto;
+  overflow: hidden;
+}
+
+.preview-toolbar,
+.export-bar {
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #f7f4ee;
+}
+
+.preview-toolbar {
+  border-bottom: 1px solid var(--ink);
+}
+
+.preview-toolbar > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(21, 131, 94, 0.12);
+}
+
+.status-dot.draft {
+  background: var(--orange);
+  box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.12);
+}
+
+.preview-toolbar a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.preview-toolbar a:hover {
+  color: var(--orange);
+}
+
+.preview-stage {
+  min-height: 0;
+  padding: 46px 40px;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  background:
+    linear-gradient(45deg, #252525 25%, transparent 25%),
+    linear-gradient(-45deg, #252525 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #252525 75%),
+    linear-gradient(-45deg, transparent 75%, #252525 75%),
+    #202020;
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+}
+
+.tweet-card {
+  position: relative;
+  width: 620px;
+  min-height: 330px;
+  padding: 18px 20px 14px;
+  overflow: hidden;
+  color: #e7e9ea;
+  background: #000;
+  font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42);
+}
+
+.tweet-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.tweet-avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #222;
+}
+
+.tweet-identity {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.tweet-name-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.tweet-name-line strong {
+  color: #f4f4f4;
+  font-weight: 750;
+}
+
+.tweet-name-line span {
+  color: #71767b;
+}
+
+.verified-icon {
+  color: #1d9bf0;
+  font-size: 17px;
+}
+
+.tweet-actions-top {
+  margin-left: auto;
+  color: #71767b;
+}
+
+.tweet-body {
+  min-height: 205px;
+  padding: 12px 4px 18px 54px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+  line-height: 1.62;
+  letter-spacing: 0.005em;
+}
+
+.tweet-metrics {
+  min-height: 30px;
+  padding-left: 54px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  color: #71767b;
+}
+
+.tweet-metrics span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tweet-metrics svg {
+  width: 19px;
+  height: 19px;
+}
+
+.tweet-metrics em {
+  font-size: 13px;
+  font-style: normal;
+}
+
+.tweet-metrics .liked {
+  color: #f91880;
+}
+
+.tweet-metrics .metric-spacer {
+  flex: 1;
+}
+
+.demo-watermark {
+  position: absolute;
+  z-index: 2;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.demo-watermark {
+  right: 18px;
+  bottom: 54px;
+  padding: 6px 9px;
+  color: #ffc9b5;
+  border: 1px solid #943e20;
+  background: rgba(89, 28, 8, 0.92);
+}
+
+.export-bar {
+  min-height: 76px;
+  border-top: 1px solid var(--ink);
+}
+
+.export-note {
+  max-width: 580px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #655f55;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.export-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--green);
+  font-size: 16px;
+}
+
+.download-button {
+  min-width: 138px;
+  min-height: 43px;
+  border: 1px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: white;
+  background: var(--orange);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.download-button:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.download-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+@media (max-width: 1080px) {
+  .app-grid {
+    grid-template-columns: 360px minmax(600px, 1fr);
+  }
+
+  .app-shell {
+    padding: 12px;
+  }
+
+  .tweet-card {
+    width: 580px;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-grid {
+    display: block;
+  }
+
+  .control-panel {
+    max-height: none;
+  }
+
+  .preview-panel {
+    margin-top: 14px;
+  }
+
+  .tweet-card {
+    width: min(620px, calc(100vw - 44px));
+  }
+
+  .preview-stage {
+    padding: 24px 10px;
+  }
+}
+
+@media (max-width: 620px) {
+  .app-shell {
+    padding: 8px;
+  }
+
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .topbar h1 {
+    font-size: 18px;
+  }
+
+  .privacy-badge {
+    display: none;
+  }
+
+  .tweet-card {
+    padding: 14px 13px 11px;
+  }
+
+  .tweet-body {
+    padding-left: 0;
+  }
+
+  .tweet-metrics {
+    padding-left: 0;
+    gap: 20px;
+  }
+
+  .export-bar {
+    padding: 12px;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .download-button {
+    width: 100%;
+  }
+}
