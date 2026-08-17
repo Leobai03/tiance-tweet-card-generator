@@ -503,6 +503,51 @@ a:focus-visible {
 }
 .length-warning svg { flex: 0 0 auto; margin-top: 1px; font-size: 16px; }
 
+.card-theme-control {
+  margin-bottom: 16px;
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.card-theme-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.card-theme-picker button {
+  min-height: 40px;
+  border: 1px solid #bcb5a9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ink);
+  background: #fffefa;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.card-theme-picker button.active {
+  border-color: var(--orange);
+  box-shadow: inset 0 0 0 1px var(--orange);
+  color: #bb3e0d;
+  background: var(--orange-soft);
+}
+
+.theme-swatch {
+  width: 17px;
+  height: 17px;
+  border: 1px solid #8e877c;
+  border-radius: 50%;
+}
+.theme-swatch.light { background: #fff; }
+.theme-swatch.dark { background: #000; }
+
 .placement-controls {
   margin-top: 15px;
   padding-top: 14px;
@@ -706,10 +751,15 @@ a:focus-visible {
   min-height: 330px;
   padding: 18px 20px 14px;
   overflow: hidden;
-  color: #e7e9ea;
-  background: #000;
+  color: #0f1419;
+  background: #fff;
   font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42);
+}
+
+.tweet-card.theme-dark {
+  color: #e7e9ea;
+  background: #000;
 }
 
 .tweet-header {
@@ -742,9 +792,11 @@ a:focus-visible {
 }
 
 .tweet-name-line strong {
-  color: #f4f4f4;
+  color: #0f1419;
   font-weight: 750;
 }
+
+.theme-dark .tweet-name-line strong { color: #f4f4f4; }
 
 .tweet-name-line span {
   color: #71767b;
