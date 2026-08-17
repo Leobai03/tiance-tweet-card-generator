@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import {
-  BookmarkSimple, ChartBar, ChatCircle, Check, DownloadSimple, DotsThree, Heart,
+  BookmarkSimple, ChartBar, ChatCircle, Check, CopySimple, DownloadSimple, DotsThree, Heart,
   ImageSquare, LinkSimple, MagnifyingGlass, Repeat, SealCheck, ShieldCheck,
   Shuffle, Sparkle, UploadSimple, WarningCircle,
 } from "@phosphor-icons/react";
@@ -47,6 +47,32 @@ function createDraft(source) {
   return `最近重新翻到我以前写过的一句话：\n\n“${anchor}。”\n\n当时更在意把判断说出来。现在回头看，真正有价值的不是一句话听起来多对，而是它能不能变成一个具体动作。\n\n所以我接下来会把这件事拆成一个小实验：先做一个最小版本，发出去，看真实反馈，再决定要不要继续。\n\n看到问题 → 动手验证 → 接受反馈 → 再迭代。`;
 }
 
+function buildPublishCopy(text) {
+  const clean = text.replace(/https?:\/\/\S+/g, "").replace(/[#@][^\s]+/g, "").replace(/\s+/g, " ").trim();
+  let sentence = "真正有价值的改变，永远从一次具体行动开始";
+  if (/(AI|GPT|ChatGPT|Gemini|Token|人工智能)/i.test(clean)) sentence = "AI真正拉开差距的，不是知道多少工具，而是能不能用它解决一个真实问题";
+  else if (/(执行|行动|拖延|验证|去做)/.test(clean)) sentence = "真正拉开差距的，从来不是想得多明白，而是愿不愿意马上去做";
+  else if (/(问题|思考|认知|判断|理解)/.test(clean)) sentence = "一个真正的好问题，会让你再也回不到原来的看法里";
+  else if (/(创业|赚钱|商业|项目|收入|利润)/.test(clean)) sentence = "很多机会并不复杂，真正稀缺的是看见之后愿意马上验证的人";
+  else if (/(写作|内容|口播|自媒体|流量|观众)/.test(clean)) sentence = "好内容不是把道理说得更大，而是让人听完愿意多走一步";
+  else {
+    const candidate = clean.split(/[。！？；]/).map((item) => item.trim()).find((item) => item.length >= 10 && item.length <= 42);
+    if (candidate) sentence = candidate;
+  }
+
+  const tags = [];
+  const add = (tag) => { if (!tags.includes(tag) && tags.length < 2) tags.push(tag); };
+  if (/(AI|GPT|ChatGPT|Gemini|Token|人工智能)/i.test(clean)) add("#AI");
+  if (/(创业|赚钱|商业|项目|收入|利润)/.test(clean)) { add("#创业"); add("#财富"); }
+  if (/(写作|内容|口播|自媒体|流量)/.test(clean)) add("#自媒体");
+  if (/(认知|思考|问题|判断)/.test(clean)) add("#认知");
+  if (/(自由职业|副业)/.test(clean)) add("#自由职业");
+  if (/(成长|学习|执行|行动|拖延)/.test(clean)) add("#个人成长");
+  if (tags.length === 0) add("#认知");
+  if (tags.length === 1) add("#个人成长");
+  return `${sentence} ${tags.join(" ")} #天策`;
+}
+
 function TweetCard({ cardRef, mode, selected, draft, demoMetrics, fontSize, poster = false }) {
   const isHistory = mode === "history";
   const metrics = { replies: demoMetrics.replies, reposts: isHistory ? selected.reposts : demoMetrics.reposts, likes: isHistory ? selected.likes : demoMetrics.likes, views: demoMetrics.views };
@@ -78,6 +104,8 @@ export function App() {
   const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState(false);
+  const [publishCopy, setPublishCopy] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
   const exportRef = useRef(null);
   const dragStateRef = useRef(null);
   const selected = useMemo(() => tweets.find((tweet) => tweet.id === selectedId) || tweets[0], [selectedId]);
@@ -92,6 +120,7 @@ export function App() {
     return backgrounds.filter((item) => !needle || `${item.name} ${item.tags}`.toLowerCase().includes(needle));
   }, [backgroundQuery]);
   useEffect(() => setExported(false), [mode, outputMode, selectedId, draft, demoMetrics, fontSize, background, overlay, cardScale, cardPosition]);
+  useEffect(() => { setPublishCopy(""); setCopyStatus(""); }, [mode, selectedId, draft]);
 
   function selectTweet(tweet) { setSelectedId(tweet.id); if (mode === "draft") setDraft(createDraft(tweet)); }
   function switchMode(nextMode) { setMode(nextMode); if (nextMode === "draft") setDraft(createDraft(selected)); }
@@ -104,6 +133,17 @@ export function App() {
     reader.readAsDataURL(file);
   }
   function applyBackgroundUrl() { const value = backgroundUrl.trim(); if (value) setBackground(value); }
+  function generatePublishCopy() { const next = buildPublishCopy(activeText); setPublishCopy(next); setCopyStatus(""); return next; }
+  async function copyDescription() {
+    const value = publishCopy || generatePublishCopy();
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      const input = document.createElement("textarea"); input.value = value; document.body.appendChild(input); input.select(); document.execCommand("copy"); input.remove();
+    }
+    setCopyStatus("已复制，可直接粘贴到抖音");
+    window.setTimeout(() => setCopyStatus(""), 2200);
+  }
   function resetCardPlacement() { setCardScale(0.9); setCardPosition({ x: 0, y: 0 }); }
   function startDragging(event) {
     if (outputMode !== "poster") return;
@@ -167,11 +207,17 @@ export function App() {
           </div>
         </section>}
         <section className="panel-section visual-section"><div className="section-heading compact"><span className="step-number">{finishStep}</span><div><h2>检查并下载</h2><p>右侧看到的就是最终图片</p></div></div><label className="range-label"><span>正文字号 <b>{fontSize}px</b></span><input type="range" min="15" max="22" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label>{outputMode === "poster" && activeText.length > 520 && <div className="length-warning"><WarningCircle weight="fill" /><span>这条推文偏长，竖图可能放不下。建议换短一点的推文或缩小字号。</span></div>}</section>
+        <section className="panel-section publish-copy-section">
+          <div className="section-heading compact"><span className="step-number">{String(Number(finishStep) + 1).padStart(2, "0")}</span><div><h2>准备发布文案和话题</h2><p>自动生成一句文案 + 3 个相关标签</p></div></div>
+          {publishCopy ? <div className="publish-copy-result">{publishCopy}</div> : <div className="publish-copy-empty">点击下方按钮，根据当前推文自动生成。</div>}
+          <div className="publish-copy-actions"><button className="secondary-button" onClick={generatePublishCopy}><Sparkle weight="fill" /> {publishCopy ? "重新生成" : "生成发布文案"}</button><button className="copy-button" onClick={copyDescription}><CopySimple weight="bold" /> 一键复制</button></div>
+          <p className="copy-check-note">{copyStatus || "复制前快速检查一遍，确认没有偏离原推意思。"}</p>
+        </section>
       </aside>
       <section className="preview-panel">
         <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div>{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}</div>
         <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging}><TweetCard mode={mode} selected={selected} draft={draft} demoMetrics={demoMetrics} fontSize={fontSize} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} draft={draft} demoMetrics={demoMetrics} fontSize={fontSize} />}</div>
-        <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{outputMode === "poster" ? "3:4 竖图已排好，下载 PNG 后可直接上传抖音。" : "下载纯推文卡片 PNG。"}</span></div><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? "已下载" : "一键下载成品"}</button></div>
+        <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? "已下载" : "一键下载成品"}</button></div></div>
       </section>
     </div>
   </main>;

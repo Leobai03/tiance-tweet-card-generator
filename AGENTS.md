@@ -15,3 +15,4 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Backgrounds must support built-in presets, local image upload, and a pasted online image URL. The preview should match the downloaded PNG.
 - The poster editor must let mouse and touch users drag the tweet card, scale it, and reset it to a centered default.
 - Optimize the controls and copy for matrix-account operators who should not need design or editing experience.
+- Treat a finished post as two deliverables: a downloadable image and a one-line Douyin description with exactly three relevant hashtags that can be copied directly.

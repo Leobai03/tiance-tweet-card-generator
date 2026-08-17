@@ -529,6 +529,36 @@ a:focus-visible {
   font-weight: 800;
 }
 
+.publish-copy-result,
+.publish-copy-empty {
+  min-height: 86px;
+  padding: 13px;
+  border: 1px solid #bcb5a9;
+  background: #fffefa;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.publish-copy-result { color: #25231f; }
+.publish-copy-empty { display: grid; place-items: center; color: var(--muted); text-align: center; font-size: 10px; }
+.publish-copy-actions { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.publish-copy-actions .secondary-button { width: 100%; }
+.copy-button,
+.copy-export-button {
+  min-height: 40px;
+  border: 1px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: white;
+  background: var(--ink);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 850;
+}
+.copy-check-note { min-height: 16px; margin: 8px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+
 .preview-panel {
   min-height: 620px;
   display: grid;
@@ -811,6 +841,10 @@ a:focus-visible {
   font-weight: 850;
 }
 
+.export-actions { display: flex; align-items: center; gap: 9px; }
+.copy-export-button { min-width: 142px; min-height: 43px; background: #fffefa; color: var(--ink); }
+.copy-export-button:hover { color: white; background: var(--ink); }
+
 .download-button:hover:not(:disabled) {
   transform: translate(1px, 1px);
   box-shadow: 2px 2px 0 var(--ink);
@@ -904,6 +938,9 @@ a:focus-visible {
     align-items: stretch;
     flex-direction: column;
   }
+
+  .export-actions { width: 100%; display: grid; grid-template-columns: 1fr; }
+  .copy-export-button { width: 100%; }
 
   .download-button {
     width: 100%;
