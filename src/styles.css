@@ -181,6 +181,69 @@ a:focus-visible {
   padding: 3px;
 }
 
+.segmented-control.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.category-pills {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.category-pills button {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid #bdb6a9;
+  background: #fffefa;
+  color: #69645b;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.category-pills button.active {
+  border-color: var(--orange);
+  background: var(--orange);
+  color: white;
+}
+
+.source-list {
+  max-height: 340px;
+  border: 1px solid var(--line);
+  overflow-y: auto;
+  background: #ede9e1;
+}
+
+.source-item {
+  border-bottom: 1px solid #d9d4ca;
+  background: #fffefa;
+}
+
+.source-item:last-child { border-bottom: 0; }
+.source-item.selected { box-shadow: inset 4px 0 0 var(--orange); background: var(--orange-soft); }
+
+.source-main {
+  width: 100%;
+  padding: 11px 12px 6px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.source-main strong { display: block; margin: 6px 0 4px; font-size: 12px; line-height: 1.4; }
+.source-main p { margin: 0; color: #615c53; font-size: 10px; line-height: 1.55; }
+.source-meta { display: flex; justify-content: space-between; gap: 8px; color: var(--orange); font-size: 9px; }
+.source-meta b { letter-spacing: .04em; }
+.source-meta em { color: var(--green); font-style: normal; font-weight: 800; }
+.source-item > a { display: inline-flex; align-items: center; gap: 4px; margin: 0 12px 10px; color: #6e685f; font-size: 9px; text-decoration: none; }
+.source-item > a:hover { color: var(--orange); text-decoration: underline; }
+.source-note { display: flex; gap: 6px; margin: 10px 0 0; color: #6f695e; font-size: 9px; line-height: 1.5; }
+.source-note svg { flex: 0 0 auto; color: var(--green); font-size: 15px; }
+
 .segmented-control button {
   min-height: 40px;
   border: 0;

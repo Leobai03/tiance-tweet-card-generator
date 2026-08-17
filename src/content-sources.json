@@ -1,0 +1,122 @@
+[
+  {
+    "id": "nber-support-agents",
+    "category": "AI效率",
+    "title": "AI最先放大的，是普通人的工作效率",
+    "insight": "一项覆盖5179名客服人员的研究发现，使用生成式AI后，平均生产率提升14%，新手和低技能员工的提升达到34%。",
+    "angle": "AI不是只服务高手，它往往先帮助经验较少的人缩短摸索时间。",
+    "sourceName": "NBER｜Generative AI at Work",
+    "sourceUrl": "https://www.nber.org/papers/w31161",
+    "productFit": ["GPT", "社群"]
+  },
+  {
+    "id": "stanford-adoption",
+    "category": "AI世界观",
+    "title": "AI已经从尝鲜工具变成工作基础设施",
+    "insight": "斯坦福AI Index 2025显示，2024年有78%的受访组织报告正在使用AI，上一年为55%。",
+    "angle": "真正的分界线不再是知不知道AI，而是有没有把AI放进每天的工作流。",
+    "sourceName": "Stanford AI Index 2025",
+    "sourceUrl": "https://hai.stanford.edu/ai-index/2025-ai-index-report",
+    "productFit": ["GPT", "社群"]
+  },
+  {
+    "id": "stanford-cost",
+    "category": "AI商业",
+    "title": "模型能力在普及，调用成本在快速下降",
+    "insight": "斯坦福AI Index 2025指出，达到GPT-3.5级别能力的模型推理成本在2022年11月至2024年10月间下降超过280倍。",
+    "angle": "当能力越来越便宜，机会会从“拥有模型”转向“谁能把模型接进真实业务”。",
+    "sourceName": "Stanford AI Index 2025",
+    "sourceUrl": "https://hai.stanford.edu/ai-index/2025-ai-index-report",
+    "productFit": ["Token", "社群"]
+  },
+  {
+    "id": "openai-everyday-work",
+    "category": "AI实操",
+    "title": "别只让AI聊天，让它直接产出工作成果",
+    "insight": "OpenAI Academy把日常高频用法归纳为简报、总结、演示文稿、工作表、计划和流程文档，并强调给出真实上下文。",
+    "angle": "好提示词不是一句咒语，而是把背景、目标、限制和成品格式交代清楚。",
+    "sourceName": "OpenAI Academy｜Everyday Tasks",
+    "sourceUrl": "https://openai.com/academy/how-to-use-chatgpt-work-for-everyday-tasks/",
+    "productFit": ["GPT"]
+  },
+  {
+    "id": "openai-skills",
+    "category": "AI实操",
+    "title": "把重复要求做成固定技能",
+    "insight": "OpenAI Academy的Skills资料展示了如何把常用指令、参考资料和工作步骤封装起来，让重复任务更稳定。",
+    "angle": "真正省时间的不是每次重新提问，而是把做对一次的方法沉淀成可以反复调用的流程。",
+    "sourceName": "OpenAI Academy｜Skills",
+    "sourceUrl": "https://openai.com/academy/skills/",
+    "productFit": ["GPT", "社群"]
+  },
+  {
+    "id": "openai-agents-work",
+    "category": "AI效率",
+    "title": "AI正在从回答问题走向执行任务",
+    "insight": "OpenAI关于智能体工作的案例强调，AI系统开始承担多步骤工作，而不只是返回一次答案。",
+    "angle": "下一阶段的效率差距，不是会不会问，而是能不能把任务拆成AI可以持续执行的流程。",
+    "sourceName": "OpenAI｜How agents are transforming work",
+    "sourceUrl": "https://openai.com/index/how-agents-are-transforming-work/",
+    "productFit": ["GPT", "Token"]
+  },
+  {
+    "id": "codex-knowledge-work",
+    "category": "AI实操",
+    "title": "Codex不只写代码，也能处理真实知识工作",
+    "insight": "OpenAI展示了Codex在资料整理、分析、文档和重复工作自动化等知识工作中的应用。",
+    "angle": "先给AI一个真实项目和可以检查的结果，比空学一百条提示词更有效。",
+    "sourceName": "OpenAI｜Codex for knowledge work",
+    "sourceUrl": "https://openai.com/index/codex-for-knowledge-work/",
+    "productFit": ["GPT", "社群"]
+  },
+  {
+    "id": "anthropic-use-cases",
+    "category": "AI实操",
+    "title": "AI的价值取决于你交给它什么问题",
+    "insight": "Anthropic列出的Claude用途覆盖写作、分析、编程、研究和头脑风暴等多类任务。",
+    "angle": "不要问AI能做什么，先把你今天最耗时间的一件事交给它。",
+    "sourceName": "Anthropic Support｜Claude use cases",
+    "sourceUrl": "https://support.anthropic.com/en/articles/7996845-what-are-some-things-i-can-use-claude-for",
+    "productFit": ["GPT"]
+  },
+  {
+    "id": "anthropic-prompting",
+    "category": "AI认知",
+    "title": "提示词的本质是把模糊需求变清楚",
+    "insight": "Anthropic的提示工程资料强调清晰的目标、上下文、示例和评估方式对输出质量的重要性。",
+    "angle": "很多时候不是AI不行，而是我们自己还没想清楚要什么。",
+    "sourceName": "Anthropic｜Prompt engineering",
+    "sourceUrl": "https://www.anthropic.com/news/prompt-engineering-for-business-performance",
+    "productFit": ["GPT", "社群"]
+  },
+  {
+    "id": "ai-first-step",
+    "category": "AI认知",
+    "title": "收藏工具不会产生复利，完成任务才会",
+    "insight": "多个官方实践指南都把重点放在真实任务、清晰上下文和可检查的输出，而不是记忆工具清单。",
+    "angle": "普通人使用AI最有效的第一步，是今天就拿一个真实任务做完闭环。",
+    "sourceName": "OpenAI Academy｜Everyday Tasks",
+    "sourceUrl": "https://openai.com/academy/how-to-use-chatgpt-work-for-everyday-tasks/",
+    "productFit": ["GPT", "社群"]
+  },
+  {
+    "id": "ai-income-boundary",
+    "category": "AI商业",
+    "title": "AI不会直接给你收入，但会降低验证成本",
+    "insight": "AI可以加速研究、内容、分析和交付，但收入仍然来自真实需求、有效产品和持续成交。",
+    "angle": "别把AI当印钞机，把它当成更便宜、更快的试错工具。",
+    "sourceName": "OpenAI｜ChatGPT usage at work",
+    "sourceUrl": "https://openai.com/business/guides-and-resources/chatgpt-usage-and-adoption-patterns-at-work/",
+    "productFit": ["社群", "GPT", "Token"]
+  },
+  {
+    "id": "token-business",
+    "category": "AI商业",
+    "title": "从使用AI，到把AI接进产品和业务",
+    "insight": "个人聊天适合单次任务；API和Token更适合批量处理、自动化流程和产品调用。",
+    "angle": "当一个任务需要重复一百次，就应该考虑让模型自动跑，而不是手动复制一百次。",
+    "sourceName": "OpenAI Platform｜Use cases",
+    "sourceUrl": "https://platform.openai.com/docs/overview",
+    "productFit": ["Token"]
+  }
+]

@@ -6,6 +6,7 @@ import {
   Repeat, SealCheck, ShieldCheck, Shuffle, Sparkle, UploadSimple, WarningCircle,
 } from "@phosphor-icons/react";
 import tweets from "./tweets.json";
+import contentSources from "./content-sources.json";
 
 const avatar = "/assets/tiance-avatar.jpg";
 const initialTweet = tweets.find((tweet) => tweet.id === "2000941227961733492") || tweets[0];
@@ -41,6 +42,10 @@ function cleanSentence(value) {
 function createDraft(source) {
   const anchor = cleanSentence(source.text) || "真正重要的不是听懂一个道理，而是把它放进现实里检验";
   return `最近重新翻到我以前写过的一句话：\n\n“${anchor}。”\n\n当时更在意把判断说出来。现在回头看，真正有价值的不是一句话听起来多对，而是它能不能变成一个具体动作。\n\n所以我接下来会把这件事拆成一个小实验：先做一个最小版本，发出去，看真实反馈，再决定要不要继续。\n\n看到问题 → 动手验证 → 接受反馈 → 再迭代。`;
+}
+
+function createSourceDraft(source) {
+  return `${source.title}\n\n${source.insight}\n\n${source.angle}\n\n别急着收藏更多工具。先找一件你今天真的要完成的事，用AI跑完一次，再根据结果继续调整。`;
 }
 
 function randomBetween(min, max) {
@@ -80,7 +85,7 @@ function buildPublishCopy(text) {
   return `${sentence} ${tags.join(" ")} #天策`;
 }
 
-function TweetCard({ cardRef, mode, selected, draft, fontSize, metrics, cardTheme, poster = false }) {
+function TweetCard({ cardRef, mode, selected, text, fontSize, metrics, cardTheme, poster = false }) {
   const isHistory = mode === "history";
   return <article className={`tweet-card theme-${cardTheme} ${poster ? "poster-tweet-card" : ""}`} ref={cardRef} aria-label="推文图片预览">
     <header className="tweet-header">
@@ -88,7 +93,7 @@ function TweetCard({ cardRef, mode, selected, draft, fontSize, metrics, cardThem
       <div className="tweet-identity"><div className="tweet-name-line"><strong>天策</strong><SealCheck weight="fill" className="verified-icon" /><span>@Leobai825</span>{isHistory && <><span>·</span><span>{formatDate(selected.date)}</span></>}</div></div>
       <div className="tweet-actions-top" aria-hidden="true"><DotsThree size={25} weight="bold" /></div>
     </header>
-    <div className="tweet-body" style={{ fontSize: `${fontSize}px` }}>{isHistory ? selected.text : draft}</div>
+    <div className="tweet-body" style={{ fontSize: `${fontSize}px` }}>{text}</div>
     <footer className="tweet-metrics">
       <span><ChatCircle /><em>{formatMetric(metrics.replies)}</em></span>
       <span><Repeat /><em>{formatMetric(metrics.reposts)}</em></span>
@@ -99,11 +104,15 @@ function TweetCard({ cardRef, mode, selected, draft, fontSize, metrics, cardThem
 }
 
 export function App() {
-  const [mode, setMode] = useState("history");
+  const [mode, setMode] = useState("sources");
   const [outputMode, setOutputMode] = useState("poster");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(initialTweet?.id);
   const [draft, setDraft] = useState(() => createDraft(initialTweet));
+  const [sourceQuery, setSourceQuery] = useState("");
+  const [sourceCategory, setSourceCategory] = useState("全部");
+  const [selectedSourceId, setSelectedSourceId] = useState(contentSources[0].id);
+  const [sourceDraft, setSourceDraft] = useState(() => createSourceDraft(contentSources[0]));
   const [fontSize, setFontSize] = useState(18);
   const [cardTheme, setCardTheme] = useState("light");
   const [background, setBackground] = useState(backgrounds[0].src);
@@ -121,8 +130,14 @@ export function App() {
   const dragStateRef = useRef(null);
   const pinchRef = useRef(null);
   const selected = useMemo(() => tweets.find((tweet) => tweet.id === selectedId) || tweets[0], [selectedId]);
+  const selectedSource = useMemo(() => contentSources.find((source) => source.id === selectedSourceId) || contentSources[0], [selectedSourceId]);
   const metrics = useMemo(() => buildDemoMetrics(), [selectedId, metricsTick]);
-  const activeText = mode === "history" ? selected.text : draft;
+  const activeText = mode === "history" ? selected.text : mode === "sources" ? sourceDraft : draft;
+  const sourceCategories = ["全部", ...new Set(contentSources.map((source) => source.category))];
+  const sourceResults = useMemo(() => {
+    const needle = sourceQuery.trim().toLowerCase();
+    return contentSources.filter((source) => (sourceCategory === "全部" || source.category === sourceCategory) && (!needle || `${source.title} ${source.insight} ${source.angle} ${source.productFit.join(" ")}`.toLowerCase().includes(needle)));
+  }, [sourceCategory, sourceQuery]);
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return tweets.slice(0, 12);
@@ -137,6 +152,7 @@ export function App() {
 
   function selectTweet(tweet) { setSelectedId(tweet.id); if (mode === "draft") setDraft(createDraft(tweet)); }
   function switchMode(nextMode) { setMode(nextMode); if (nextMode === "draft") setDraft(createDraft(selected)); }
+  function selectSource(source) { setSelectedSourceId(source.id); setSourceDraft(createSourceDraft(source)); }
   function pickRandom() { const pool = tweets.slice(0, Math.min(100, tweets.length)); selectTweet(pool[Math.floor(Math.random() * pool.length)]); }
   function loadUpload(event) {
     const file = event.target.files?.[0];
@@ -198,7 +214,8 @@ export function App() {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: outputMode === "poster" ? "#161616" : cardTheme === "light" ? "#ffffff" : "#000000" });
       const link = document.createElement("a");
-      link.download = outputMode === "poster" ? `抖音图文-${selected.date}.png` : `推文卡片-${selected.date}.png`;
+      const fileLabel = mode === "history" ? selected.date : new Date().toISOString().slice(0, 10);
+      link.download = outputMode === "poster" ? `抖音图文-${fileLabel}.png` : `推文卡片-${fileLabel}.png`;
       link.href = dataUrl;
       link.click();
       setExported(true);
@@ -208,20 +225,29 @@ export function App() {
     } finally { setExporting(false); }
   }
 
-  const outputStep = mode === "draft" ? "04" : "03";
-  const backgroundStep = mode === "draft" ? "05" : "04";
-  const finishStep = mode === "draft" ? (outputMode === "poster" ? "06" : "05") : (outputMode === "poster" ? "05" : "04");
+  const hasEditor = mode === "draft" || mode === "sources";
+  const outputStep = hasEditor ? "04" : "03";
+  const backgroundStep = hasEditor ? "05" : "04";
+  const finishStep = hasEditor ? (outputMode === "poster" ? "06" : "05") : (outputMode === "poster" ? "05" : "04");
 
   return <main className="app-shell">
     <header className="topbar"><div className="brand-mark">TC</div><div><p className="eyebrow">TIANCE MATRIX</p><h1>抖音图文生成器</h1></div><div className="privacy-badge"><ShieldCheck weight="fill" /> 选内容 · 选背景 · 直接发</div></header>
     <div className="app-grid">
       <aside className="control-panel">
-        <section className="panel-section mode-section"><div className="section-heading"><span className="step-number">01</span><div><h2>选择推文内容</h2><p>用原推，或者在原推基础上改写</p></div></div><div className="segmented-control"><button className={mode === "history" ? "active" : ""} onClick={() => switchMode("history")}>历史原推</button><button className={mode === "draft" ? "active" : ""} onClick={() => switchMode("draft")}>编辑文案</button></div></section>
-        <section className="panel-section archive-section">
+        <section className="panel-section mode-section"><div className="section-heading"><span className="step-number">01</span><div><h2>选择内容来源</h2><p>从可信素材、历史原推或自由编辑开始</p></div></div><div className="segmented-control three"><button className={mode === "sources" ? "active" : ""} onClick={() => switchMode("sources")}>AI素材库</button><button className={mode === "history" ? "active" : ""} onClick={() => switchMode("history")}>历史原推</button><button className={mode === "draft" ? "active" : ""} onClick={() => switchMode("draft")}>自由编辑</button></div></section>
+        {mode === "sources" && <section className="panel-section source-library-section">
+          <div className="section-heading compact"><span className="step-number">02</span><div><h2>可信内容素材库</h2><p>选一个观点，一键生成可发布草稿</p></div></div>
+          <label className="search-box"><MagnifyingGlass /><input value={sourceQuery} onChange={(event) => setSourceQuery(event.target.value)} placeholder="搜：效率、赚钱、Codex、Token" /></label>
+          <div className="category-pills">{sourceCategories.map((category) => <button key={category} className={sourceCategory === category ? "active" : ""} onClick={() => setSourceCategory(category)}>{category}</button>)}</div>
+          <div className="source-list">{sourceResults.map((source) => <article key={source.id} className={`source-item ${source.id === selectedSource.id ? "selected" : ""}`}><button className="source-main" onClick={() => selectSource(source)}><span className="source-meta"><b>{source.category}</b><em>{source.productFit.join(" · ")}</em></span><strong>{source.title}</strong><p>{source.insight}</p></button><a href={source.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> {source.sourceName}</a></article>)}</div>
+          <p className="source-note"><ShieldCheck weight="fill" /> 外部资料只提炼观点。涉及数据时，发布前请点开原文复核；个人经历和收入必须替换成自己的真实情况。</p>
+        </section>}
+        {mode !== "sources" && <section className="panel-section archive-section">
           <div className="section-heading compact"><span className="step-number">02</span><div><h2>搜索 {tweets.length} 条推文</h2><p>搜关键词，点一条就能直接用</p></div></div>
           <div className="search-row"><label className="search-box"><MagnifyingGlass /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：创业、AI、自媒体" /></label><button className="icon-button" onClick={pickRandom}><Shuffle /></button></div>
           <div className="tweet-list" role="listbox">{results.map((tweet) => <button key={tweet.id} className={`tweet-list-item ${tweet.id === selected.id ? "selected" : ""}`} onClick={() => selectTweet(tweet)}><span className="item-date">{tweet.date}</span><strong>{tweet.text.replace(/\s+/g, " ").slice(0, 58)}</strong><span className="item-stats">{tweet.likes.toLocaleString("zh-CN")} 赞 · {tweet.reposts.toLocaleString("zh-CN")} 转</span></button>)}{results.length === 0 && <div className="empty-state">没有找到，换一个关键词。</div>}</div>
-        </section>
+        </section>}
+        {mode === "sources" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>调整生成内容</h2><p>保留事实，改成你自己真实说话的方式</p></div></div><textarea value={sourceDraft} onChange={(event) => setSourceDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{sourceDraft.length} 字</span><button className="secondary-button" onClick={() => setSourceDraft(createSourceDraft(selectedSource))}><Sparkle weight="fill" /> 重新生成</button></div></section>}
         {mode === "draft" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>改写正文</h2><p>只改文字，头像和账号信息已固定</p></div></div><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{draft.length} 字</span><button className="secondary-button" onClick={() => setDraft(createDraft(selected))}><Sparkle weight="fill" /> 重新生成草稿</button></div></section>}
         <section className="panel-section output-section"><div className="section-heading compact"><span className="step-number">{outputStep}</span><div><h2>选择发布样式</h2><p>纯卡片，或抖音 3:4 背景图成品</p></div></div><div className="output-picker"><button className={outputMode === "poster" ? "active" : ""} onClick={() => setOutputMode("poster")}><ImageSquare weight="fill" /><strong>抖音竖图</strong><span>下载后直接上传</span></button><button className={outputMode === "card" ? "active" : ""} onClick={() => setOutputMode("card")}><BookmarkSimple weight="fill" /><strong>纯推文卡片</strong><span>保留原来的排版</span></button></div></section>
         {outputMode === "poster" && <section className="panel-section background-section">
@@ -244,8 +270,8 @@ export function App() {
         </section>
       </aside>
       <section className="preview-panel">
-        <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div><div className="toolbar-actions">{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}<button type="button" className="ghost-button" onClick={() => setMetricsTick((t) => t + 1)}><ArrowsClockwise /> 换一组数据</button></div></div>
-        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} draft={draft} fontSize={fontSize} metrics={metrics} cardTheme={cardTheme} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} draft={draft} fontSize={fontSize} metrics={metrics} cardTheme={cardTheme} />}</div>
+        <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div><div className="toolbar-actions">{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}{mode === "sources" && <a href={selectedSource.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> 查看来源</a>}<button type="button" className="ghost-button" onClick={() => setMetricsTick((t) => t + 1)}><ArrowsClockwise /> 换一组数据</button></div></div>
+        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} text={activeText} fontSize={fontSize} metrics={metrics} cardTheme={cardTheme} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} text={activeText} fontSize={fontSize} metrics={metrics} cardTheme={cardTheme} />}</div>
         <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? "已下载" : "一键下载成品"}</button></div></div>
       </section>
     </div>
