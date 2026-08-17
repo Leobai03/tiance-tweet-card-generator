@@ -614,6 +614,23 @@ a:focus-visible {
   color: var(--orange);
 }
 
+.preview-toolbar .ghost-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.preview-toolbar .ghost-button:hover {
+  color: var(--orange);
+}
+
 .preview-stage {
   min-height: 0;
   padding: 46px 40px;

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import {
-  BookmarkSimple, Check, CopySimple, DownloadSimple, DotsThree, Heart,
-  ImageSquare, LinkSimple, MagnifyingGlass, Repeat, SealCheck, ShieldCheck,
-  Shuffle, Sparkle, UploadSimple, WarningCircle,
+  ArrowsClockwise, BookmarkSimple, ChartBar, Check, ChatCircle, CopySimple,
+  DownloadSimple, DotsThree, Heart, ImageSquare, LinkSimple, MagnifyingGlass,
+  Repeat, SealCheck, ShieldCheck, Shuffle, Sparkle, UploadSimple, WarningCircle,
 } from "@phosphor-icons/react";
 import tweets from "./tweets.json";
 
@@ -43,6 +43,17 @@ function createDraft(source) {
   return `最近重新翻到我以前写过的一句话：\n\n“${anchor}。”\n\n当时更在意把判断说出来。现在回头看，真正有价值的不是一句话听起来多对，而是它能不能变成一个具体动作。\n\n所以我接下来会把这件事拆成一个小实验：先做一个最小版本，发出去，看真实反馈，再决定要不要继续。\n\n看到问题 → 动手验证 → 接受反馈 → 再迭代。`;
 }
 
+function randomBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function buildDemoMetrics() {
+  return {
+    replies: randomBetween(120, 480),
+    reposts: randomBetween(300, 1400),
+    likes: randomBetween(4200, 18000),
+    views: randomBetween(280000, 4200000),
+  };
+}
 function buildPublishCopy(text) {
   const clean = text.replace(/https?:\/\/\S+/g, "").replace(/[#@][^\s]+/g, "").replace(/\s+/g, " ").trim();
   let sentence = "真正有价值的改变，永远从一次具体行动开始";
@@ -69,7 +80,7 @@ function buildPublishCopy(text) {
   return `${sentence} ${tags.join(" ")} #天策`;
 }
 
-function TweetCard({ cardRef, mode, selected, draft, fontSize, poster = false }) {
+function TweetCard({ cardRef, mode, selected, draft, fontSize, metrics, poster = false }) {
   const isHistory = mode === "history";
   return <article className={`tweet-card ${poster ? "poster-tweet-card" : ""}`} ref={cardRef} aria-label="推文图片预览">
     <header className="tweet-header">
@@ -78,7 +89,12 @@ function TweetCard({ cardRef, mode, selected, draft, fontSize, poster = false })
       <div className="tweet-actions-top" aria-hidden="true"><DotsThree size={25} weight="bold" /></div>
     </header>
     <div className="tweet-body" style={{ fontSize: `${fontSize}px` }}>{isHistory ? selected.text : draft}</div>
-    {isHistory && <footer className="tweet-metrics history-metrics"><span><Repeat /><em>{formatMetric(selected.reposts)}</em></span><span className="liked"><Heart weight="fill" /><em>{formatMetric(selected.likes)}</em></span></footer>}
+    <footer className="tweet-metrics">
+      <span><ChatCircle /><em>{formatMetric(metrics.replies)}</em></span>
+      <span><Repeat /><em>{formatMetric(metrics.reposts)}</em></span>
+      <span className="liked"><Heart weight="fill" /><em>{formatMetric(metrics.likes)}</em></span>
+      <span><ChartBar /><em>{formatMetric(metrics.views)}</em></span>
+    </footer>
   </article>;
 }
 
@@ -98,11 +114,13 @@ export function App() {
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState(false);
   const [publishCopy, setPublishCopy] = useState("");
+  const [metricsTick, setMetricsTick] = useState(0);
   const [copyStatus, setCopyStatus] = useState("");
   const exportRef = useRef(null);
   const dragStateRef = useRef(null);
   const pinchRef = useRef(null);
   const selected = useMemo(() => tweets.find((tweet) => tweet.id === selectedId) || tweets[0], [selectedId]);
+  const metrics = useMemo(() => buildDemoMetrics(), [selectedId, metricsTick]);
   const activeText = mode === "history" ? selected.text : draft;
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -113,7 +131,7 @@ export function App() {
     const needle = backgroundQuery.trim().toLowerCase();
     return backgrounds.filter((item) => !needle || `${item.name} ${item.tags}`.toLowerCase().includes(needle));
   }, [backgroundQuery]);
-  useEffect(() => setExported(false), [mode, outputMode, selectedId, draft, fontSize, background, overlay, cardScale, cardPosition]);
+  useEffect(() => setExported(false), [mode, outputMode, selectedId, draft, fontSize, background, overlay, cardScale, cardPosition, metricsTick]);
   useEffect(() => { setPublishCopy(""); setCopyStatus(""); }, [mode, selectedId, draft]);
 
   function selectTweet(tweet) { setSelectedId(tweet.id); if (mode === "draft") setDraft(createDraft(tweet)); }
@@ -225,8 +243,8 @@ export function App() {
         </section>
       </aside>
       <section className="preview-panel">
-        <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div>{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}</div>
-        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} draft={draft} fontSize={fontSize} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} draft={draft} fontSize={fontSize} />}</div>
+        <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div><div className="toolbar-actions">{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}<button type="button" className="ghost-button" onClick={() => setMetricsTick((t) => t + 1)}><ArrowsClockwise /> 换一组数据</button></div></div>
+        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} draft={draft} fontSize={fontSize} metrics={metrics} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} draft={draft} fontSize={fontSize} metrics={metrics} />}</div>
         <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? "已下载" : "一键下载成品"}</button></div></div>
       </section>
     </div>
