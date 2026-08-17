@@ -782,25 +782,8 @@ a:focus-visible {
   color: #f91880;
 }
 
-.tweet-metrics .metric-spacer {
-  flex: 1;
-}
-
-.demo-watermark {
-  position: absolute;
-  z-index: 2;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
-.demo-watermark {
-  right: 18px;
-  bottom: 54px;
-  padding: 6px 9px;
-  color: #ffc9b5;
-  border: 1px solid #943e20;
-  background: rgba(89, 28, 8, 0.92);
+.history-metrics {
+  justify-content: flex-start;
 }
 
 .export-bar {

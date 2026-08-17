@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import {
-  BookmarkSimple, ChartBar, ChatCircle, Check, CopySimple, DownloadSimple, DotsThree, Heart,
+  BookmarkSimple, Check, CopySimple, DownloadSimple, DotsThree, Heart,
   ImageSquare, LinkSimple, MagnifyingGlass, Repeat, SealCheck, ShieldCheck,
   Shuffle, Sparkle, UploadSimple, WarningCircle,
 } from "@phosphor-icons/react";
@@ -34,10 +34,6 @@ function formatMetric(value) {
     return `${amount >= 100 ? Math.round(amount) : amount.toFixed(amount < 10 ? 1 : 0)}万`;
   }
   return value.toLocaleString("zh-CN");
-}
-function randomBetween(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function buildDemoMetrics() {
-  return { replies: randomBetween(70, 160), reposts: randomBetween(90, 520), likes: randomBetween(800, 3200), views: randomBetween(50000, 1000000) };
 }
 function cleanSentence(value) {
   return value.replace(/https?:\/\/\S+/g, "").split(/[。！？\n]/).map((item) => item.trim()).find((item) => item.length >= 8 && item.length <= 52);
@@ -73,18 +69,16 @@ function buildPublishCopy(text) {
   return `${sentence} ${tags.join(" ")} #天策`;
 }
 
-function TweetCard({ cardRef, mode, selected, draft, demoMetrics, fontSize, poster = false }) {
+function TweetCard({ cardRef, mode, selected, draft, fontSize, poster = false }) {
   const isHistory = mode === "history";
-  const metrics = { replies: demoMetrics.replies, reposts: isHistory ? selected.reposts : demoMetrics.reposts, likes: isHistory ? selected.likes : demoMetrics.likes, views: demoMetrics.views };
   return <article className={`tweet-card ${poster ? "poster-tweet-card" : ""}`} ref={cardRef} aria-label="推文图片预览">
-    <div className="demo-watermark">{isHistory ? "评论 / 浏览为模拟数据" : "编辑文案卡片"}</div>
     <header className="tweet-header">
       <img className="tweet-avatar" src={avatar} alt="天策头像" />
       <div className="tweet-identity"><div className="tweet-name-line"><strong>天策</strong><SealCheck weight="fill" className="verified-icon" /><span>@Leobai825</span>{isHistory && <><span>·</span><span>{formatDate(selected.date)}</span></>}</div></div>
       <div className="tweet-actions-top" aria-hidden="true"><DotsThree size={25} weight="bold" /></div>
     </header>
     <div className="tweet-body" style={{ fontSize: `${fontSize}px` }}>{isHistory ? selected.text : draft}</div>
-    <footer className="tweet-metrics"><span><ChatCircle /><em>{formatMetric(metrics.replies)}</em></span><span><Repeat /><em>{formatMetric(metrics.reposts)}</em></span><span className="liked"><Heart weight="fill" /><em>{formatMetric(metrics.likes)}</em></span><span><ChartBar /><em>{formatMetric(metrics.views)}</em></span><span className="metric-spacer" /><BookmarkSimple /></footer>
+    {isHistory && <footer className="tweet-metrics history-metrics"><span><Repeat /><em>{formatMetric(selected.reposts)}</em></span><span className="liked"><Heart weight="fill" /><em>{formatMetric(selected.likes)}</em></span></footer>}
   </article>;
 }
 
@@ -94,7 +88,6 @@ export function App() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(initialTweet?.id);
   const [draft, setDraft] = useState(() => createDraft(initialTweet));
-  const [demoMetrics, setDemoMetrics] = useState(buildDemoMetrics);
   const [fontSize, setFontSize] = useState(18);
   const [background, setBackground] = useState(backgrounds[0].src);
   const [backgroundQuery, setBackgroundQuery] = useState("");
@@ -108,6 +101,7 @@ export function App() {
   const [copyStatus, setCopyStatus] = useState("");
   const exportRef = useRef(null);
   const dragStateRef = useRef(null);
+  const pinchRef = useRef(null);
   const selected = useMemo(() => tweets.find((tweet) => tweet.id === selectedId) || tweets[0], [selectedId]);
   const activeText = mode === "history" ? selected.text : draft;
   const results = useMemo(() => {
@@ -119,7 +113,7 @@ export function App() {
     const needle = backgroundQuery.trim().toLowerCase();
     return backgrounds.filter((item) => !needle || `${item.name} ${item.tags}`.toLowerCase().includes(needle));
   }, [backgroundQuery]);
-  useEffect(() => setExported(false), [mode, outputMode, selectedId, draft, demoMetrics, fontSize, background, overlay, cardScale, cardPosition]);
+  useEffect(() => setExported(false), [mode, outputMode, selectedId, draft, fontSize, background, overlay, cardScale, cardPosition]);
   useEffect(() => { setPublishCopy(""); setCopyStatus(""); }, [mode, selectedId, draft]);
 
   function selectTweet(tweet) { setSelectedId(tweet.id); if (mode === "draft") setDraft(createDraft(tweet)); }
@@ -147,6 +141,7 @@ export function App() {
   function resetCardPlacement() { setCardScale(0.9); setCardPosition({ x: 0, y: 0 }); }
   function startDragging(event) {
     if (outputMode !== "poster") return;
+    if (pinchRef.current) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     dragStateRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, origin: cardPosition };
   }
@@ -161,11 +156,26 @@ export function App() {
   function stopDragging(event) {
     if (dragStateRef.current?.pointerId === event.pointerId) dragStateRef.current = null;
   }
+  function handleTouchStart(e) {
+    if (outputMode !== "poster" || e.touches.length !== 2) return;
+    dragStateRef.current = null;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    pinchRef.current = { dist: Math.hypot(dx, dy), scale: cardScale };
+  }
+  function handleTouchMove(e) {
+    if (!pinchRef.current || e.touches.length !== 2) return;
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const ratio = Math.hypot(dx, dy) / pinchRef.current.dist;
+    setCardScale(Math.max(0.55, Math.min(1.2, pinchRef.current.scale * ratio)));
+  }
+  function handleTouchEnd() { pinchRef.current = null; }
   async function downloadImage() {
     if (!exportRef.current || exporting) return;
     setExporting(true);
     try {
-      setDemoMetrics(buildDemoMetrics());
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: outputMode === "poster" ? "#161616" : "#000000" });
       const link = document.createElement("a");
@@ -216,7 +226,7 @@ export function App() {
       </aside>
       <section className="preview-panel">
         <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div>{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}</div>
-        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging}><TweetCard mode={mode} selected={selected} draft={draft} demoMetrics={demoMetrics} fontSize={fontSize} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} draft={draft} demoMetrics={demoMetrics} fontSize={fontSize} />}</div>
+        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} draft={draft} fontSize={fontSize} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} draft={draft} fontSize={fontSize} />}</div>
         <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? "已下载" : "一键下载成品"}</button></div></div>
       </section>
     </div>
