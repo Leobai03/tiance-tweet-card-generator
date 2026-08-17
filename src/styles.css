@@ -453,6 +453,9 @@ a:focus-visible {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 7px;
+  max-height: 248px;
+  padding: 2px;
+  overflow-y: auto;
 }
 
 .background-grid button {
@@ -499,6 +502,32 @@ a:focus-visible {
   line-height: 1.5;
 }
 .length-warning svg { flex: 0 0 auto; margin-top: 1px; font-size: 16px; }
+
+.placement-controls {
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.drag-help {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.drag-help button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--ink);
+  background: #fffefa;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+}
 
 .preview-panel {
   min-height: 620px;
@@ -598,8 +627,12 @@ a:focus-visible {
   top: 50%;
   left: 50%;
   width: 640px;
-  transform: translate(-50%, -50%);
+  transform-origin: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
+.poster-card-wrap:active { cursor: grabbing; }
 .poster-tweet-card {
   width: 640px;
   max-height: 800px;

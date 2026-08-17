@@ -13,4 +13,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Keep the primary workflow extremely simple: select a tweet, select a publishing style/background, and download a finished image.
 - Keep two output modes: the original standalone tweet card and a Douyin-ready 3:4 portrait image combining a background with the tweet card.
 - Backgrounds must support built-in presets, local image upload, and a pasted online image URL. The preview should match the downloaded PNG.
+- The poster editor must let mouse and touch users drag the tweet card, scale it, and reset it to a centered default.
 - Optimize the controls and copy for matrix-account operators who should not need design or editing experience.
