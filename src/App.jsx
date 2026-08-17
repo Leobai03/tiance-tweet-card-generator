@@ -45,6 +45,7 @@ function createDraft(source) {
 }
 
 function createSourceDraft(source) {
+  if (source.draft) return source.draft;
   return `${source.title}\n\n${source.insight}\n\n${source.angle}\n\n${source.action || "别急着收藏更多工具。先找一件你今天真的要完成的事，用AI跑完一次，再根据结果继续调整。"}`;
 }
 
@@ -154,6 +155,11 @@ export function App() {
   function selectTweet(tweet) { setSelectedId(tweet.id); if (mode === "draft") setDraft(createDraft(tweet)); }
   function switchMode(nextMode) { setMode(nextMode); if (nextMode === "draft") setDraft(createDraft(selected)); }
   function selectSource(source) { setSelectedSourceId(source.id); setSourceDraft(createSourceDraft(source)); }
+  function pickRandomSource() {
+    const pool = sourceResults.length ? sourceResults : contentSources;
+    const alternatives = pool.filter((source) => source.id !== selectedSourceId);
+    selectSource((alternatives.length ? alternatives : pool)[Math.floor(Math.random() * (alternatives.length ? alternatives.length : pool.length))]);
+  }
   function pickRandom() { const pool = tweets.slice(0, Math.min(100, tweets.length)); selectTweet(pool[Math.floor(Math.random() * pool.length)]); }
   function loadUpload(event) {
     const file = event.target.files?.[0];
@@ -238,7 +244,7 @@ export function App() {
         <section className="panel-section mode-section"><div className="section-heading"><span className="step-number">01</span><div><h2>选择内容来源</h2><p>从可信素材、历史原推或自由编辑开始</p></div></div><div className="segmented-control three"><button className={mode === "sources" ? "active" : ""} onClick={() => switchMode("sources")}>AI素材库</button><button className={mode === "history" ? "active" : ""} onClick={() => switchMode("history")}>历史原推</button><button className={mode === "draft" ? "active" : ""} onClick={() => switchMode("draft")}>自由编辑</button></div></section>
         {mode === "sources" && <section className="panel-section source-library-section">
           <div className="section-heading compact"><span className="step-number">02</span><div><h2>{contentSources.length.toLocaleString("zh-CN")} 条中文成品素材</h2><p>当前筛选 {sourceResults.length} 条，选一个就能生成</p></div></div>
-          <label className="search-box"><MagnifyingGlass /><input value={sourceQuery} onChange={(event) => setSourceQuery(event.target.value)} placeholder="搜：效率、赚钱、Codex、Token" /></label>
+          <div className="search-row"><label className="search-box"><MagnifyingGlass /><input value={sourceQuery} onChange={(event) => setSourceQuery(event.target.value)} placeholder="搜：效率、赚钱、Codex、Token" /></label><button className="icon-button" onClick={pickRandomSource} title="从当前结果随机一条" aria-label="随机一条素材"><Shuffle /></button></div>
           <div className="category-pills">{sourceCategories.map((category) => <button key={category} className={sourceCategory === category ? "active" : ""} onClick={() => setSourceCategory(category)}>{category}</button>)}</div>
           <div className="source-list">{visibleSourceResults.map((source) => <article key={source.id} className={`source-item ${source.id === selectedSource.id ? "selected" : ""}`}><button className="source-main" onClick={() => selectSource(source)}><span className="source-meta"><b>{source.category}</b><em>{source.productFit.join(" · ")}</em></span><strong>{source.title}</strong><p>{source.insight}</p></button><a href={source.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> {source.sourceName}</a></article>)}</div>
           <p className="source-note"><ShieldCheck weight="fill" /> 为保证页面流畅，每次展示前 100 条，搜索和分类会检索完整素材库。数据、个人经历和收入在发布前必须复核，不得虚构。</p>

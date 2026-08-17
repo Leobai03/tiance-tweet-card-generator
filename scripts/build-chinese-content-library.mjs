@@ -19,18 +19,18 @@ const tracks = [
 ];
 
 const situations = [
-  { name: "写一篇内容", old: "对着空白页面反复憋开头", action: "先给背景、受众和核心观点，让AI搭出结构，再补自己的经历", output: "一篇有个人判断的初稿" },
-  { name: "做短视频选题", old: "只凭感觉猜观众想看什么", action: "把评论、搜索词和历史数据交给AI归类，再挑一个最具体的问题", output: "一个可以立刻开拍的选题" },
-  { name: "研究新项目", old: "收藏一堆资料却没有结论", action: "让AI列出需求、竞品、风险和最低成本验证动作", output: "一张能执行的验证清单" },
-  { name: "整理会议", old: "会后靠记忆拼凑重点", action: "让AI从记录中提取决定、负责人、截止时间和未解决问题", output: "一份可以追踪的行动纪要" },
-  { name: "学习新知识", old: "从第一章开始被动看完", action: "先让AI解释全貌，再围绕真实任务补缺口并当场练习", output: "一套用得上的知识结构" },
-  { name: "回复客户", old: "每次从头组织措辞", action: "提供客户背景、问题、边界和期望语气，让AI先拟回复", output: "一段清楚又有人味的沟通" },
-  { name: "分析数据", old: "盯着表格却不知道先看什么", action: "先定义问题和指标，再让AI检查异常、对比变化并解释可能原因", output: "一个可以继续验证的数据判断" },
-  { name: "制作方案", old: "先做漂亮页面再补逻辑", action: "让AI先厘清目标、对象、约束、步骤和验收标准", output: "一份逻辑完整的方案骨架" },
-  { name: "处理长文档", old: "从第一页读到最后一页才开始思考", action: "让AI按问题提取证据、矛盾、结论和待确认信息", output: "一份带依据的阅读笔记" },
-  { name: "开发小工具", old: "因为不会写代码一直停在想法阶段", action: "把用户场景、输入输出和验收方式交给Codex，先做最小版本", output: "一个能被真实用户测试的原型" },
-  { name: "运营私域", old: "每天临时想发什么、回什么", action: "把常见问题和真实案例整理成素材，让AI辅助分类、改写和复用", output: "一套持续更新的内容流程" },
-  { name: "复盘一天", old: "只记得自己很忙", action: "让AI根据完成事项、卡点和反馈追问原因，再收敛明天的第一步", output: "一个更具体的下一步动作" }
+  { name: "写一篇内容", scene: "内容写作", old: "对着空白页面反复憋开头", action: "先给背景、受众和核心观点，让AI搭出结构，再补自己的经历", output: "一篇有个人判断的初稿" },
+  { name: "做短视频选题", scene: "短视频选题", old: "只凭感觉猜观众想看什么", action: "把评论、搜索词和历史数据交给AI归类，再挑一个最具体的问题", output: "一个可以立刻开拍的选题" },
+  { name: "研究新项目", scene: "新项目研究", old: "收藏一堆资料却没有结论", action: "让AI列出需求、竞品、风险和最低成本验证动作", output: "一张能执行的验证清单" },
+  { name: "整理会议", scene: "会议整理", old: "会后靠记忆拼凑重点", action: "让AI从记录中提取决定、负责人、截止时间和未解决问题", output: "一份可以追踪的行动纪要" },
+  { name: "学习新知识", scene: "新知识学习", old: "从第一章开始被动看完", action: "先让AI解释全貌，再围绕真实任务补缺口并当场练习", output: "一套用得上的知识结构" },
+  { name: "回复客户", scene: "客户回复", old: "每次从头组织措辞", action: "提供客户背景、问题、边界和期望语气，让AI先拟回复", output: "一段清楚又有人味的沟通" },
+  { name: "分析数据", scene: "数据分析", old: "盯着表格却不知道先看什么", action: "先定义问题和指标，再让AI检查异常、对比变化并解释可能原因", output: "一个可以继续验证的数据判断" },
+  { name: "制作方案", scene: "方案制作", old: "先做漂亮页面再补逻辑", action: "让AI先厘清目标、对象、约束、步骤和验收标准", output: "一份逻辑完整的方案骨架" },
+  { name: "处理长文档", scene: "长文档处理", old: "从第一页读到最后一页才开始思考", action: "让AI按问题提取证据、矛盾、结论和待确认信息", output: "一份带依据的阅读笔记" },
+  { name: "开发小工具", scene: "小工具开发", old: "因为不会写代码一直停在想法阶段", action: "把用户场景、输入输出和验收方式交给Codex，先做最小版本", output: "一个能被真实用户测试的原型" },
+  { name: "运营私域", scene: "私域运营", old: "每天临时想发什么、回什么", action: "把常见问题和真实案例整理成素材，让AI辅助分类、改写和复用", output: "一套持续更新的内容流程" },
+  { name: "复盘一天", scene: "每日复盘", old: "只记得自己很忙", action: "让AI根据完成事项、卡点和反馈追问原因，再收敛明天的第一步", output: "一个更具体的下一步动作" }
 ];
 
 const lenses = [
@@ -43,6 +43,26 @@ const lenses = [
   { lead: "AI时代最稀缺的可能不是答案", pivot: "答案越来越便宜，提出好问题、判断真假和承担结果反而更重要", close: "模型可以生成选项，但最后的选择仍然属于人" }
 ];
 
+const openings = [
+  (track, situation) => `${situation.scene}这件事，AI最适合先接手最费时间的那一段。`,
+  (track, situation) => `别一上来就问AI“你能帮我做什么”。拿${situation.scene}来说，问题越具体，结果越能用。`,
+  (track, situation) => `很多人用AI做${situation.scene}，聊了半天，最后还是得自己重来。`,
+  (track, situation) => `AI能不能帮你省时间，看一次${situation.scene}就知道了。`,
+  (track, situation) => `同样是${situation.scene}，有人用AI多了一堆废话，有人直接拿到能改的初稿。`,
+  (track, situation) => `如果AI只给了你一段正确但没用的话，多半不是模型差，是任务还没说清楚。`,
+  (track, situation) => `答案现在不稀缺。做${situation.scene}时，知道自己到底要什么，反而更重要。`
+];
+
+const endings = [
+  (track, situation) => `先别换工具。拿今天手头的${situation.scene}试一次，做完再看它到底省没省时间。`,
+  (track, situation) => `下一次做${situation.scene}，把背景、目标、限制和格式一次发给AI，看看第一版能不能直接改。`,
+  (track, situation) => `觉得AI不好用时，先别急着下结论。把任务再说具体一点，通常马上就不一样。`,
+  (track, situation) => `先跑一个最小版本。结果能用就留下流程，不能用就改要求，别在收藏夹里研究。`,
+  (track, situation) => `今天只测这一件事：让AI帮你拿到${situation.output}。好不好用，看结果，不看宣传。`,
+  (track, situation) => `把这次有效的问法保存下来。下次再做${situation.scene}，就不用重新摸索。`,
+  (track, situation) => `模型可以帮你起步，但最后那遍检查别省。事实、语气和决定，还是要自己负责。`
+];
+
 const products = {
   GPT: "适合先用GPT完成一次真实任务",
   Token: "适合需要批量调用或接入自动化流程的人",
@@ -52,16 +72,22 @@ const products = {
 const generated = [];
 for (const track of tracks) {
   for (const situation of situations) {
-    for (const lens of lenses) {
+    for (let lensIndex = 0; lensIndex < lenses.length; lensIndex += 1) {
+      const lens = lenses[lensIndex];
       const index = generated.length + 1;
       const productLine = track.fit.map((item) => products[item]).join("；");
+      const opening = openings[lensIndex](track, situation);
+      const ending = endings[(lensIndex + situations.indexOf(situation)) % endings.length](track, situation);
+      const middle = `${situation.old}，当然累。可以换个顺序：${situation.action}。先拿到${situation.output}，再由人判断哪里该留、哪里该删。`;
+      const draft = `${opening}\n\n${middle}\n\n${track.topic}，说到底就是${track.value}。\n\n${ending}`;
       generated.push({
         id: `matrix-ai-${String(index).padStart(4, "0")}`,
         category: track.category,
         title: `${lens.lead}：${track.topic}，从${situation.name}开始`,
-        insight: `以前很多人${situation.old}。更有效的做法是：${situation.action}，先得到${situation.output}。`,
-        angle: `${lens.pivot}。${track.topic}，最终是为了${track.value}。${lens.close}。`,
-        action: `今天就选一个正在发生的“${situation.name}”任务，把背景、目标、限制和成品格式一次说清楚，完成后检查并记录哪里需要调整。`,
+        insight: middle,
+        angle: `${lens.pivot}。${track.topic}，说到底就是${track.value}。`,
+        action: ending,
+        draft,
         conversion: productLine,
         sourceName: track.sourceName,
         sourceUrl: track.sourceUrl,
