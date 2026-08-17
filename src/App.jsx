@@ -39,9 +39,54 @@ function formatMetric(value) {
 function cleanSentence(value) {
   return value.replace(/https?:\/\/\S+/g, "").split(/[。！？\n]/).map((item) => item.trim()).find((item) => item.length >= 8 && item.length <= 52);
 }
-function createDraft(source) {
+const rewriteStyles = [
+  { id: "auto", label: "自动换风格" },
+  { id: "efficiency", label: "效率对比" },
+  { id: "era", label: "时代判断" },
+  { id: "practice", label: "具体实操" },
+  { id: "cognition", label: "认知反转" },
+  { id: "life", label: "生活场景" },
+  { id: "codex", label: "Codex工作流" },
+  { id: "token", label: "Token自动化" },
+];
+
+function createDraft(source, style = "auto", variant = 0) {
   const anchor = cleanSentence(source.text) || "真正重要的不是听懂一个道理，而是把它放进现实里检验";
-  return `最近重新翻到我以前写过的一句话：\n\n“${anchor}。”\n\n当时更在意把判断说出来。现在回头看，真正有价值的不是一句话听起来多对，而是它能不能变成一个具体动作。\n\n所以我接下来会把这件事拆成一个小实验：先做一个最小版本，发出去，看真实反馈，再决定要不要继续。\n\n看到问题 → 动手验证 → 接受反馈 → 再迭代。`;
+  const styleIds = rewriteStyles.slice(1).map((item) => item.id);
+  const resolved = style === "auto" ? styleIds[variant % styleIds.length] : style;
+  const templates = {
+    efficiency: [
+      `以前看到“${anchor}”，很多人会先花几个小时找资料、列提纲、反复修改。\n\n现在可以换个顺序：把背景、目标和限制交给AI，让它先完成搜索、整理和第一版。人只负责判断哪里不对、哪里值得继续。\n\nAI真正省下来的，不是几分钟打字时间，而是从空白到能动手的那段路。`,
+      `“${anchor}”这件事，放到今天可以再往前走一步。\n\n凡是重复搜索、整理、归类和改格式的工作，都可以先让AI跑一遍。你不需要把判断交出去，只需要少做那些没有必要的机械劳动。\n\n同样一天，有人还在从零开始，有人已经拿着AI的初稿做第二轮了。`,
+    ],
+    era: [
+      `“${anchor}。”\n\n这句话放在AI时代，会变得更现实。答案正在越来越便宜，真正拉开差距的，是谁能提出具体问题、验证结果，再把有效做法沉淀下来。\n\n以后不会是AI淘汰所有人，更可能是会调用AI完成工作的人，慢慢替代只会用旧方法重复劳动的人。`,
+      `AI带来的变化，不只是多了一个聊天工具。\n\n“${anchor}。”过去这类判断可能只能停在脑子里，现在普通人可以马上让AI帮自己研究、拆解、写出第一版，再拿到现实里验证。\n\n时代变化最明显的地方，就是想法到结果之间的距离正在变短。`,
+    ],
+    practice: [
+      `如果你认同“${anchor}”，不要只收藏。\n\n今天找一个真实任务，把这四样东西一次发给AI：\n1. 事情的背景\n2. 你想得到的结果\n3. 不能碰的边界\n4. 最终交付格式\n\n先让它做出第一版，再逐条检查。AI好不好用，做完一个任务就知道了。`,
+      `拿“${anchor}”做一次AI实验。\n\n先让AI反驳这个观点，再让它补充证据，最后要求它给出一个今天能执行的小动作。不要问“你怎么看”，要让它交付一个可以检查的结果。\n\n会不会用AI，不看提示词收藏了多少，只看有没有完成闭环。`,
+    ],
+    cognition: [
+      `很多人以为AI最值钱的是答案。\n\n其实答案越容易得到，“${anchor}”这种判断反而越需要人自己负责。AI可以给你十种解释，却不能替你决定相信哪一种，更不能替你承担结果。\n\n未来更稀缺的可能不是知识，而是提问、判断和行动。`,
+      `“${anchor}。”\n\nAI不会让思考变得不重要，恰恰相反。它会迅速生成一堆看起来都对的东西，逼着人分辨什么是真的、什么适合自己。\n\n模型负责扩大选项，人负责收敛选择。这才是比较舒服的人机分工。`,
+    ],
+    life: [
+      `AI改变生活，通常不是从一件很宏大的事开始。\n\n可能只是读一份看不懂的文件、比较几个选择、整理一次旅行计划，或者把“${anchor}”解释成自己听得懂的话。\n\n当这些小事不再持续消耗注意力，人才能把时间留给更重要的人和决定。`,
+      `“${anchor}。”\n\n以前遇到复杂问题，第一反应可能是拖着。现在可以先把材料交给AI，让它整理重点、列出缺失信息，再告诉你下一步问谁、做什么。\n\nAI不一定替你生活，但它可以让很多原本很麻烦的事情，变得更容易开始。`,
+    ],
+    codex: [
+      `“${anchor}”不一定只能写成一段话，也可以直接做成一个工具。\n\n把用户是谁、遇到什么问题、输入什么、输出什么告诉Codex，让它先搭一个最小版本。不会写代码也没关系，先看结果能不能跑，再继续修改。\n\nAI编程最有意思的地方，是普通人的很多想法终于有机会被做出来。`,
+      `以前有个小工具的想法，第一道门槛是“我不会写代码”。\n\n现在可以把“${anchor}”背后的需求拆成页面、数据和操作流程，交给Codex做出第一版。你负责描述问题、测试结果、指出哪里不对。\n\n从想法到原型，已经不一定要先学几个月技术。`,
+    ],
+    token: [
+      `如果一件AI任务只做一次，聊天窗口就够了。\n\n如果“${anchor}”背后的工作每天要重复几十次，就应该考虑把模型接进流程：自动读取、分类、生成，再把异常留给人检查。\n\nToken的价值不是多聊几句话，而是让一次有效操作可以持续运行。`,
+      `“${anchor}。”\n\n当一个流程已经验证有效，下一步不是每天手动复制粘贴，而是通过模型调用把它批量跑起来。先从最稳定、最重复、结果最容易检查的一步开始。\n\nAI从工具变成生产力，往往就发生在这一步。`,
+    ],
+  };
+  const options = templates[resolved] || templates.efficiency;
+  const optionIndex = style === "auto" ? Math.floor(variant / styleIds.length) % options.length : variant % options.length;
+  return options[optionIndex];
 }
 
 function createSourceDraft(source) {
@@ -110,6 +155,8 @@ export function App() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(initialTweet?.id);
   const [draft, setDraft] = useState(() => createDraft(initialTweet));
+  const [draftStyle, setDraftStyle] = useState("auto");
+  const [draftVariant, setDraftVariant] = useState(0);
   const [sourceQuery, setSourceQuery] = useState("");
   const [sourceCategory, setSourceCategory] = useState("全部");
   const [selectedSourceId, setSelectedSourceId] = useState(contentSources[0].id);
@@ -152,8 +199,10 @@ export function App() {
   useEffect(() => setExported(false), [mode, outputMode, selectedId, draft, fontSize, cardTheme, background, overlay, cardScale, cardPosition, metricsTick]);
   useEffect(() => { setPublishCopy(""); setCopyStatus(""); }, [mode, selectedId, draft]);
 
-  function selectTweet(tweet) { setSelectedId(tweet.id); if (mode === "draft") setDraft(createDraft(tweet)); }
-  function switchMode(nextMode) { setMode(nextMode); if (nextMode === "draft") setDraft(createDraft(selected)); }
+  function rewriteDraft(tweet = selected, style = draftStyle, nextVariant = draftVariant) { setDraftVariant(nextVariant); setDraft(createDraft(tweet, style, nextVariant)); }
+  function selectTweet(tweet) { setSelectedId(tweet.id); if (mode === "draft") rewriteDraft(tweet); }
+  function switchMode(nextMode) { setMode(nextMode); if (nextMode === "draft") rewriteDraft(selected); }
+  function chooseDraftStyle(style) { setDraftStyle(style); rewriteDraft(selected, style, draftVariant + 1); }
   function selectSource(source) { setSelectedSourceId(source.id); setSourceDraft(createSourceDraft(source)); }
   function pickRandomSource() {
     const pool = sourceResults.length ? sourceResults : contentSources;
@@ -255,7 +304,7 @@ export function App() {
           <div className="tweet-list" role="listbox">{results.map((tweet) => <button key={tweet.id} className={`tweet-list-item ${tweet.id === selected.id ? "selected" : ""}`} onClick={() => selectTweet(tweet)}><span className="item-date">{tweet.date}</span><strong>{tweet.text.replace(/\s+/g, " ").slice(0, 58)}</strong><span className="item-stats">{tweet.likes.toLocaleString("zh-CN")} 赞 · {tweet.reposts.toLocaleString("zh-CN")} 转</span></button>)}{results.length === 0 && <div className="empty-state">没有找到，换一个关键词。</div>}</div>
         </section>}
         {mode === "sources" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>调整生成内容</h2><p>保留事实，改成你自己真实说话的方式</p></div></div><textarea value={sourceDraft} onChange={(event) => setSourceDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{sourceDraft.length} 字</span><button className="secondary-button" onClick={() => setSourceDraft(createSourceDraft(selectedSource))}><Sparkle weight="fill" /> 重新生成</button></div></section>}
-        {mode === "draft" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>改写正文</h2><p>只改文字，头像和账号信息已固定</p></div></div><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{draft.length} 字</span><button className="secondary-button" onClick={() => setDraft(createDraft(selected))}><Sparkle weight="fill" /> 重新生成草稿</button></div></section>}
+        {mode === "draft" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>选择改写感觉</h2><p>不是换一句话，而是整篇换结构</p></div></div><div className="rewrite-style-pills">{rewriteStyles.map((style) => <button key={style.id} className={draftStyle === style.id ? "active" : ""} onClick={() => chooseDraftStyle(style.id)}>{style.label}</button>)}</div><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{draft.length} 字</span><button className="secondary-button" onClick={() => rewriteDraft(selected, draftStyle, draftVariant + 1)}><Shuffle weight="fill" /> 换一种写法</button></div><p className="rewrite-note">内容只营造“尽快真正用上AI”的认知，不写收益承诺、诱导购买或无法核实的个人经历。</p></section>}
         <section className="panel-section output-section"><div className="section-heading compact"><span className="step-number">{outputStep}</span><div><h2>选择发布样式</h2><p>纯卡片，或抖音 3:4 背景图成品</p></div></div><div className="output-picker"><button className={outputMode === "poster" ? "active" : ""} onClick={() => setOutputMode("poster")}><ImageSquare weight="fill" /><strong>抖音竖图</strong><span>下载后直接上传</span></button><button className={outputMode === "card" ? "active" : ""} onClick={() => setOutputMode("card")}><BookmarkSimple weight="fill" /><strong>纯推文卡片</strong><span>保留原来的排版</span></button></div></section>
         {outputMode === "poster" && <section className="panel-section background-section">
           <div className="section-heading compact"><span className="step-number">{backgroundStep}</span><div><h2>选择背景</h2><p>内置图库、本地上传、网络图片都能用</p></div></div>

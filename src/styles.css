@@ -381,6 +381,38 @@ a:focus-visible {
   line-height: 1.65;
 }
 
+.rewrite-style-pills {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.rewrite-style-pills button {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid #bdb6a9;
+  background: #fffefa;
+  color: #69645b;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.rewrite-style-pills button.active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: white;
+}
+
+.rewrite-note {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
 .editor-section textarea:focus {
   border-color: var(--orange);
 }
