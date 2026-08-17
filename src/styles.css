@@ -417,6 +417,89 @@ a:focus-visible {
   font-weight: 800;
 }
 
+.output-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.output-picker button {
+  min-height: 86px;
+  padding: 12px;
+  border: 1px solid #bcb5a9;
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  text-align: left;
+  background: #fffefa;
+  cursor: pointer;
+}
+
+.output-picker button svg {
+  grid-row: span 2;
+  margin-top: 2px;
+  font-size: 20px;
+}
+
+.output-picker button strong { font-size: 12px; }
+.output-picker button span { color: var(--muted); font-size: 10px; line-height: 1.4; }
+.output-picker button.active { border-color: var(--orange); background: var(--orange-soft); box-shadow: inset 0 0 0 1px var(--orange); color: #bb3e0d; }
+
+.background-search { width: 100%; }
+
+.background-grid {
+  margin-top: 9px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+
+.background-grid button {
+  padding: 3px;
+  border: 1px solid #bcb5a9;
+  display: grid;
+  gap: 4px;
+  background: #fffefa;
+  cursor: pointer;
+}
+
+.background-grid button.active { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(255, 90, 31, 0.2); }
+.background-grid img { width: 100%; height: 62px; display: block; object-fit: cover; }
+.background-grid span { padding-bottom: 2px; font-size: 9px; font-weight: 750; }
+
+.background-actions { margin: 10px 0 14px; display: grid; gap: 8px; }
+.upload-button {
+  min-height: 38px;
+  border: 1px dashed #8e877c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #fffefa;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+.upload-button input { display: none; }
+.url-row { display: grid; grid-template-columns: 1fr 56px; }
+.url-row input { min-width: 0; height: 38px; padding: 0 9px; border: 1px solid #bcb5a9; border-right: 0; background: #fffefa; font-size: 10px; }
+.url-row button { border: 1px solid var(--ink); color: white; background: var(--ink); cursor: pointer; font-size: 10px; font-weight: 800; }
+
+.length-warning {
+  margin-top: 13px;
+  padding: 10px;
+  border: 1px solid #e8bd73;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: #764d06;
+  background: #fff3d6;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.length-warning svg { flex: 0 0 auto; margin-top: 1px; font-size: 16px; }
+
 .preview-panel {
   min-height: 620px;
   display: grid;
@@ -486,6 +569,55 @@ a:focus-visible {
     #202020;
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+}
+
+.preview-stage.poster { padding: 26px; }
+
+.douyin-poster {
+  position: relative;
+  width: 720px;
+  height: 960px;
+  overflow: hidden;
+  color: white;
+  background: #151515;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
+}
+
+.poster-background,
+.poster-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.poster-background { object-fit: cover; }
+.poster-overlay { z-index: 1; }
+.poster-card-wrap {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 640px;
+  transform: translate(-50%, -50%);
+}
+.poster-tweet-card {
+  width: 640px;
+  max-height: 800px;
+  border-radius: 4px;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.48);
+}
+.poster-tweet-card .tweet-body { max-height: 650px; overflow: hidden; }
+.poster-tip {
+  position: absolute;
+  z-index: 2;
+  right: 26px;
+  bottom: 20px;
+  padding: 7px 10px;
+  color: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.38);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
 }
 
 .tweet-card {
@@ -668,6 +800,11 @@ a:focus-visible {
   .tweet-card {
     width: 580px;
   }
+
+  .douyin-poster { width: 600px; height: 800px; }
+  .poster-card-wrap, .poster-tweet-card { width: 540px; }
+  .poster-tweet-card { max-height: 680px; }
+  .poster-tweet-card .tweet-body { max-height: 530px; }
 }
 
 @media (max-width: 860px) {
@@ -690,6 +827,9 @@ a:focus-visible {
   .preview-stage {
     padding: 24px 10px;
   }
+
+  .douyin-poster { width: min(720px, calc(100vw - 44px)); height: auto; aspect-ratio: 3 / 4; }
+  .poster-card-wrap, .poster-tweet-card { width: calc(100% - 46px); }
 }
 
 @media (max-width: 620px) {
@@ -712,6 +852,10 @@ a:focus-visible {
   .tweet-card {
     padding: 14px 13px 11px;
   }
+
+  .background-grid { grid-template-columns: repeat(2, 1fr); }
+  .output-picker { grid-template-columns: 1fr; }
+  .poster-tweet-card .tweet-body { max-height: 430px; }
 
   .tweet-body {
     padding-left: 0;

@@ -17,5 +17,9 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "vite": "6.4.2"
+  },
+  "devDependencies": {
+    "caniuse-lite": "^1.0.30001809",
+    "node-releases": "^2.0.53"
   }
 }
