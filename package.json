@@ -1,7 +1,9 @@
 {
-  "name": "prototype",
+  "name": "tiance-tweet-card-generator",
   "version": "0.0.0",
   "private": true,
+  "description": "开源的推文卡片与抖音图文生成器",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "data:sync": "node scripts/export-public-tweets.mjs",
