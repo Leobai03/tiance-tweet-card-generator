@@ -16,6 +16,12 @@ const tracks = [
   { category: "Claude实操", topic: "用Claude处理长文、研究和复杂分析", value: "让复杂材料先变成清晰结构", fit: ["GPT"], sourceName: "Anthropic｜Claude use cases", sourceUrl: "https://support.anthropic.com/en/articles/7996845-what-are-some-things-i-can-use-claude-for" },
   { category: "Token自动化", topic: "把模型接进批量任务和自动化流程", value: "让一次有效操作可以重复运行", fit: ["Token"], sourceName: "OpenAI Platform", sourceUrl: "https://platform.openai.com/docs/overview" },
   { category: "AI认知", topic: "重新理解人和AI的分工", value: "把人的注意力放在目标、判断和责任上", fit: ["社群", "GPT"], sourceName: "Stanford AI Index", sourceUrl: "https://hai.stanford.edu/ai-index" }
+  ,{ category: "AI学习", topic: "让AI成为随时可以追问的学习搭档", value: "围绕真实问题更快补齐知识缺口", fit: ["GPT", "社群"], sourceName: "OpenAI Academy", sourceUrl: "https://openai.com/academy/" }
+  ,{ category: "AI研究", topic: "用AI从问题走到带来源的研究结论", value: "更快找到证据、分歧和下一步判断", fit: ["GPT"], sourceName: "OpenAI Academy｜Research", sourceUrl: "https://openai.com/academy/research/" }
+  ,{ category: "AI办公", topic: "把文档、表格和会议接进AI工作流", value: "减少办公室里的重复整理", fit: ["GPT", "Token"], sourceName: "OpenAI Academy｜ChatGPT for work", sourceUrl: "https://openai.com/academy/" }
+  ,{ category: "AI创业", topic: "用AI把创业想法更快做成最小版本", value: "用真实反馈代替长时间空想", fit: ["社群", "GPT", "Token"], sourceName: "Stanford HAI", sourceUrl: "https://hai.stanford.edu/ai-index" }
+  ,{ category: "AI销售", topic: "让AI辅助理解客户和整理沟通信息", value: "把时间留给真实关系和需求判断", fit: ["GPT", "社群"], sourceName: "OpenAI｜AI adoption at work", sourceUrl: "https://openai.com/business/guides-and-resources/chatgpt-usage-and-adoption-patterns-at-work/" }
+  ,{ category: "AI智能体", topic: "把多步骤任务交给智能体持续执行", value: "从一次问答走向可以复用的任务系统", fit: ["Token", "GPT"], sourceName: "OpenAI｜Agents", sourceUrl: "https://openai.com/index/how-agents-are-transforming-work/" }
 ];
 
 const situations = [

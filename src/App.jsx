@@ -22,6 +22,18 @@ const backgrounds = [
   { id: "hk-night", name: "维港夜景", tags: "香港 维多利亚港 夜景 倒影", src: "/backgrounds/hk-harbor-night.jpg" },
   { id: "tower-night", name: "城市高楼", tags: "城市 高楼 夜景 竖图", src: "/backgrounds/city-tower-night.jpg" },
   { id: "hk-peak", name: "太平山夜景", tags: "香港 太平山 夜景 天际线", src: "/backgrounds/hk-peak-night.jpg" },
+  { id: "aurora", name: "极光流动", tags: "AI 科技 极光 蓝紫 抽象", src: "/backgrounds/generated-aurora.svg" },
+  { id: "sunset", name: "日落山丘", tags: "日落 山丘 橙色 自然", src: "/backgrounds/generated-sunset.svg" },
+  { id: "ocean", name: "深海微光", tags: "海洋 蓝色 微光 安静", src: "/backgrounds/generated-ocean.svg" },
+  { id: "paper", name: "暖色纸张", tags: "纸张 米色 极简 认知", src: "/backgrounds/generated-paper.svg" },
+  { id: "grid", name: "未来网格", tags: "AI 科技 网格 黑色 未来", src: "/backgrounds/generated-grid.svg" },
+  { id: "forest", name: "雾中森林", tags: "森林 绿色 雾 自然", src: "/backgrounds/generated-forest.svg" },
+  { id: "dawn", name: "城市清晨", tags: "城市 清晨 粉色 天空", src: "/backgrounds/generated-dawn.svg" },
+  { id: "ink", name: "水墨山水", tags: "水墨 山水 黑白 中国风", src: "/backgrounds/generated-ink.svg" },
+  { id: "neon", name: "霓虹渐变", tags: "霓虹 紫色 蓝色 AI 抽象", src: "/backgrounds/generated-neon.svg" },
+  { id: "desert", name: "沙漠光影", tags: "沙漠 金色 光影 自然", src: "/backgrounds/generated-desert.svg" },
+  { id: "cloud", name: "云上蓝天", tags: "蓝天 云朵 清新 自由", src: "/backgrounds/generated-cloud.svg" },
+  { id: "matrix", name: "矩阵光线", tags: "矩阵 光线 绿色 黑色 科技", src: "/backgrounds/generated-matrix.svg" },
 ];
 
 function formatDate(value) {
@@ -177,6 +189,7 @@ export function App() {
   const exportRef = useRef(null);
   const dragStateRef = useRef(null);
   const pinchRef = useRef(null);
+  const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const selected = useMemo(() => tweets.find((tweet) => tweet.id === selectedId) || tweets[0], [selectedId]);
   const selectedSource = useMemo(() => contentSources.find((source) => source.id === selectedSourceId) || contentSources[0], [selectedSourceId]);
   const metrics = useMemo(() => buildDemoMetrics(), [selectedId, metricsTick]);
@@ -268,15 +281,34 @@ export function App() {
     setExporting(true);
     try {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: outputMode === "poster" ? "#161616" : cardTheme === "light" ? "#ffffff" : "#000000" });
-      const link = document.createElement("a");
       const fileLabel = mode === "history" ? selected.date : new Date().toISOString().slice(0, 10);
-      link.download = outputMode === "poster" ? `抖音图文-${fileLabel}.png` : `推文卡片-${fileLabel}.png`;
-      link.href = dataUrl;
-      link.click();
+      const filename = outputMode === "poster" ? `抖音图文-${fileLabel}.png` : `推文卡片-${fileLabel}.png`;
+      const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: outputMode === "poster" ? "#161616" : cardTheme === "light" ? "#ffffff" : "#000000" });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], filename, { type: "image/png" });
+      if (isMobile && navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+        await navigator.share({ files: [file], title: filename });
+      } else if (isMobile) {
+        const imageUrl = URL.createObjectURL(blob);
+        const previewLink = document.createElement("a");
+        previewLink.href = imageUrl;
+        previewLink.target = "_blank";
+        previewLink.rel = "noopener noreferrer";
+        document.body.appendChild(previewLink);
+        previewLink.click();
+        previewLink.remove();
+        window.setTimeout(() => URL.revokeObjectURL(imageUrl), 60000);
+        window.alert("图片已打开，请长按图片，选择“存储图像”或“保存到相册”。");
+      } else {
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+      }
       setExported(true);
       window.setTimeout(() => setExported(false), 1800);
-    } catch {
+    } catch (error) {
+      if (error?.name === "AbortError") return;
       window.alert("这张网络图片禁止跨站导出。请先保存图片，再用“上传自己的背景”导入。");
     } finally { setExporting(false); }
   }
@@ -328,7 +360,7 @@ export function App() {
       <section className="preview-panel">
         <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div><div className="toolbar-actions">{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}{mode === "sources" && <a href={selectedSource.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> 查看来源</a>}<button type="button" className="ghost-button" onClick={() => setMetricsTick((t) => t + 1)}><ArrowsClockwise /> 换一组数据</button></div></div>
         <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} text={activeText} fontSize={fontSize} metrics={metrics} cardTheme={cardTheme} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} text={activeText} fontSize={fontSize} metrics={metrics} cardTheme={cardTheme} />}</div>
-        <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? "已下载" : "一键下载成品"}</button></div></div>
+        <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{isMobile ? "生成后在系统面板选择“存储图像”，即可保存到相册。" : outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? (isMobile ? "已生成" : "已下载") : (isMobile ? "保存到相册" : "一键下载成品")}</button></div></div>
       </section>
     </div>
   </main>;
