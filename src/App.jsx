@@ -48,6 +48,13 @@ function formatMetric(value) {
   }
   return value.toLocaleString("zh-CN");
 }
+function getAdaptiveFontSize(text, preferred, poster = false) {
+  const length = text.replace(/\s+/g, "").length;
+  const limit = poster
+    ? length > 900 ? 11 : length > 700 ? 12 : length > 520 ? 13 : length > 360 ? 15 : length > 220 ? 17 : preferred
+    : length > 1000 ? 13 : length > 720 ? 14 : length > 480 ? 15 : length > 300 ? 16 : length > 180 ? 17 : preferred;
+  return Math.min(preferred, limit);
+}
 function cleanSentence(value) {
   return value.replace(/https?:\/\/\S+/g, "").split(/[。！？\n]/).map((item) => item.trim()).find((item) => item.length >= 8 && item.length <= 52);
 }
@@ -187,6 +194,7 @@ export function App() {
   const [metricsTick, setMetricsTick] = useState(0);
   const [copyStatus, setCopyStatus] = useState("");
   const exportRef = useRef(null);
+  const directCardRef = useRef(null);
   const dragStateRef = useRef(null);
   const pinchRef = useRef(null);
   const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
@@ -194,6 +202,9 @@ export function App() {
   const selectedSource = useMemo(() => contentSources.find((source) => source.id === selectedSourceId) || contentSources[0], [selectedSourceId]);
   const metrics = useMemo(() => buildDemoMetrics(), [selectedId, metricsTick]);
   const activeText = mode === "history" ? selected.text : mode === "sources" ? sourceDraft : draft;
+  const adaptiveCardFontSize = getAdaptiveFontSize(activeText, fontSize, false);
+  const adaptivePosterFontSize = getAdaptiveFontSize(activeText, fontSize, true);
+  const posterFitScale = activeText.length > 900 ? 0.62 : activeText.length > 700 ? 0.7 : activeText.length > 520 ? 0.78 : activeText.length > 360 ? 0.86 : 1;
   const sourceCategories = ["全部", ...new Set(contentSources.map((source) => source.category))];
   const sourceResults = useMemo(() => {
     const needle = sourceQuery.trim().toLowerCase();
@@ -276,14 +287,7 @@ export function App() {
     setCardScale(Math.max(0.55, Math.min(1.2, pinchRef.current.scale * ratio)));
   }
   function handleTouchEnd() { pinchRef.current = null; }
-  async function downloadImage() {
-    if (!exportRef.current || exporting) return;
-    setExporting(true);
-    try {
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const fileLabel = mode === "history" ? selected.date : new Date().toISOString().slice(0, 10);
-      const filename = outputMode === "poster" ? `抖音图文-${fileLabel}.png` : `推文卡片-${fileLabel}.png`;
-      const dataUrl = await toPng(exportRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: outputMode === "poster" ? "#161616" : cardTheme === "light" ? "#ffffff" : "#000000" });
+  async function deliverImage(dataUrl, filename) {
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], filename, { type: "image/png" });
       if (isMobile && navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
@@ -305,12 +309,29 @@ export function App() {
         link.href = dataUrl;
         link.click();
       }
+  }
+  async function exportNode(node, filename, backgroundColor) {
+    if (!node || exporting) return;
+    setExporting(true);
+    try {
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2, backgroundColor });
+      await deliverImage(dataUrl, filename);
       setExported(true);
       window.setTimeout(() => setExported(false), 1800);
     } catch (error) {
       if (error?.name === "AbortError") return;
       window.alert("这张网络图片禁止跨站导出。请先保存图片，再用“上传自己的背景”导入。");
     } finally { setExporting(false); }
+  }
+  async function downloadImage() {
+    const fileLabel = mode === "history" ? selected.date : new Date().toISOString().slice(0, 10);
+    const filename = outputMode === "poster" ? `抖音图文-${fileLabel}.png` : `推文卡片-${fileLabel}.png`;
+    return exportNode(exportRef.current, filename, outputMode === "poster" ? "#161616" : cardTheme === "light" ? "#ffffff" : "#000000");
+  }
+  async function exportDirectCard() {
+    const fileLabel = mode === "history" ? selected.date : new Date().toISOString().slice(0, 10);
+    return exportNode(directCardRef.current, `纯推文卡片-${fileLabel}.png`, cardTheme === "light" ? "#ffffff" : "#000000");
   }
 
   const hasEditor = mode === "draft" || mode === "sources";
@@ -349,7 +370,7 @@ export function App() {
             <div className="drag-help"><span>在右侧直接拖动卡片调整位置</span><button onClick={resetCardPlacement}>居中重置</button></div>
           </div>
         </section>}
-        <section className="panel-section visual-section"><div className="section-heading compact"><span className="step-number">{finishStep}</span><div><h2>检查并下载</h2><p>右侧看到的就是最终图片</p></div></div><div className="card-theme-control"><span>卡片背景</span><div className="card-theme-picker" role="group" aria-label="选择卡片背景"><button type="button" className={cardTheme === "light" ? "active" : ""} onClick={() => setCardTheme("light")}><i className="theme-swatch light" />白色</button><button type="button" className={cardTheme === "dark" ? "active" : ""} onClick={() => setCardTheme("dark")}><i className="theme-swatch dark" />黑色</button></div></div><label className="range-label"><span>正文字号 <b>{fontSize}px</b></span><input type="range" min="15" max="22" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label>{outputMode === "poster" && activeText.length > 520 && <div className="length-warning"><WarningCircle weight="fill" /><span>这条推文偏长，竖图可能放不下。建议换短一点的推文或缩小字号。</span></div>}</section>
+        <section className="panel-section visual-section"><div className="section-heading compact"><span className="step-number">{finishStep}</span><div><h2>检查并下载</h2><p>右侧看到的就是最终图片</p></div></div><div className="card-theme-control"><span>卡片背景</span><div className="card-theme-picker" role="group" aria-label="选择卡片背景"><button type="button" className={cardTheme === "light" ? "active" : ""} onClick={() => setCardTheme("light")}><i className="theme-swatch light" />白色</button><button type="button" className={cardTheme === "dark" ? "active" : ""} onClick={() => setCardTheme("dark")}><i className="theme-swatch dark" />黑色</button></div></div><label className="range-label"><span>正文字号 <b>{fontSize}px</b>{adaptiveCardFontSize < fontSize && <em>长文自动适配为 {adaptiveCardFontSize}px</em>}</span><input type="range" min="13" max="22" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label><button className="direct-export-button" onClick={exportDirectCard} disabled={exporting}><BookmarkSimple weight="fill" /><span><strong>{isMobile ? "保存纯推文卡片到相册" : "直接导出纯推文卡片"}</strong><small>没有海报背景，尺寸随正文自动增高</small></span></button>{outputMode === "poster" && activeText.length > 700 && <div className="length-warning"><WarningCircle weight="fill" /><span>这条内容很长，系统已经自动缩小卡片。纯卡片导出不会截断，抖音竖图建议适当精简。</span></div>}</section>
         <section className="panel-section publish-copy-section">
           <div className="section-heading compact"><span className="step-number">{String(Number(finishStep) + 1).padStart(2, "0")}</span><div><h2>准备发布文案和话题</h2><p>自动生成一句文案 + 3 个相关标签</p></div></div>
           {publishCopy ? <div className="publish-copy-result">{publishCopy}</div> : <div className="publish-copy-empty">点击下方按钮，根据当前推文自动生成。</div>}
@@ -359,9 +380,10 @@ export function App() {
       </aside>
       <section className="preview-panel">
         <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div><div className="toolbar-actions">{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}{mode === "sources" && <a href={selectedSource.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> 查看来源</a>}<button type="button" className="ghost-button" onClick={() => setMetricsTick((t) => t + 1)}><ArrowsClockwise /> 换一组数据</button></div></div>
-        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} text={activeText} fontSize={fontSize} metrics={metrics} cardTheme={cardTheme} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} text={activeText} fontSize={fontSize} metrics={metrics} cardTheme={cardTheme} />}</div>
+        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale * posterFitScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} text={activeText} fontSize={adaptivePosterFontSize} metrics={metrics} cardTheme={cardTheme} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} />}</div>
         <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{isMobile ? "生成后在系统面板选择“存储图像”，即可保存到相册。" : outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? (isMobile ? "已生成" : "已下载") : (isMobile ? "保存到相册" : "一键下载成品")}</button></div></div>
       </section>
     </div>
+    <div className="direct-card-export" aria-hidden="true"><TweetCard cardRef={directCardRef} mode={mode} selected={selected} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} /></div>
   </main>;
 }

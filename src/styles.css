@@ -462,6 +462,7 @@ a:focus-visible {
   font-size: 12px;
   font-weight: 700;
 }
+.range-label em { margin-left: auto; color: var(--green); font-size: 9px; font-style: normal; }
 
 .range-label b {
   color: var(--orange);
@@ -643,6 +644,26 @@ a:focus-visible {
 .theme-swatch.light { background: #fff; }
 .theme-swatch.dark { background: #000; }
 
+.direct-export-button {
+  width: 100%;
+  min-height: 58px;
+  margin-top: 14px;
+  padding: 10px 13px;
+  border: 1px solid var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  color: white;
+  background: var(--ink);
+  cursor: pointer;
+}
+.direct-export-button svg { flex: 0 0 auto; color: var(--orange); font-size: 23px; }
+.direct-export-button span { display: grid; gap: 2px; }
+.direct-export-button strong { font-size: 12px; }
+.direct-export-button small { color: #bbb5aa; font-size: 9px; }
+.direct-export-button:disabled { cursor: wait; opacity: .65; }
+
 .placement-controls {
   margin-top: 15px;
   padding-top: 14px;
@@ -822,11 +843,10 @@ a:focus-visible {
 .poster-card-wrap:active { cursor: grabbing; }
 .poster-tweet-card {
   width: 640px;
-  max-height: 800px;
   border-radius: 4px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.48);
 }
-.poster-tweet-card .tweet-body { max-height: 650px; overflow: hidden; }
+.poster-tweet-card .tweet-body { min-height: 0; }
 .poster-tip {
   position: absolute;
   z-index: 2;
@@ -845,7 +865,7 @@ a:focus-visible {
   width: 620px;
   min-height: 330px;
   padding: 18px 20px 14px;
-  overflow: hidden;
+  overflow: visible;
   color: #0f1419;
   background: #fff;
   font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -908,7 +928,7 @@ a:focus-visible {
 }
 
 .tweet-body {
-  min-height: 205px;
+  min-height: 0;
   padding: 12px 4px 18px 54px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -916,6 +936,16 @@ a:focus-visible {
   line-height: 1.62;
   letter-spacing: 0.005em;
 }
+
+.direct-card-export {
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: -10000px;
+  width: 620px;
+  pointer-events: none;
+}
+.direct-card-export .tweet-card { width: 620px; box-shadow: none; }
 
 .tweet-metrics {
   min-height: 30px;
@@ -1017,8 +1047,6 @@ a:focus-visible {
 
   .douyin-poster { width: 600px; height: 800px; }
   .poster-card-wrap, .poster-tweet-card { width: 540px; }
-  .poster-tweet-card { max-height: 680px; }
-  .poster-tweet-card .tweet-body { max-height: 530px; }
 }
 
 @media (max-width: 860px) {
@@ -1069,7 +1097,6 @@ a:focus-visible {
 
   .background-grid { grid-template-columns: repeat(2, 1fr); }
   .output-picker { grid-template-columns: 1fr; }
-  .poster-tweet-card .tweet-body { max-height: 430px; }
 
   .tweet-body {
     padding-left: 0;
