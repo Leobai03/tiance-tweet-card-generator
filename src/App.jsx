@@ -163,9 +163,9 @@ function buildPublishCopy(text) {
   return `${sentence} ${tags.join(" ")} #天策`;
 }
 
-function TweetCard({ cardRef, mode, selected, text, fontSize, metrics, cardTheme, poster = false }) {
+function TweetCard({ cardRef, mode, selected, text, fontSize, metrics, cardTheme, orientation = "portrait", poster = false }) {
   const isHistory = mode === "history";
-  return <article className={`tweet-card theme-${cardTheme} ${poster ? "poster-tweet-card" : ""}`} ref={cardRef} aria-label="推文图片预览">
+  return <article className={`tweet-card theme-${cardTheme} card-${orientation} ${poster ? "poster-tweet-card" : ""}`} ref={cardRef} aria-label="推文图片预览">
     <header className="tweet-header">
       <img className="tweet-avatar" src={avatar} alt="天策头像" />
       <div className="tweet-identity"><div className="tweet-name-line"><strong>天策</strong><SealCheck weight="fill" className="verified-icon" /><span>@Leobai825</span>{isHistory && <><span>·</span><span>{formatDate(selected.date)}</span></>}</div></div>
@@ -184,6 +184,7 @@ function TweetCard({ cardRef, mode, selected, text, fontSize, metrics, cardTheme
 export function App() {
   const [mode, setMode] = useState("sources");
   const [outputMode, setOutputMode] = useState("poster");
+  const [orientation, setOrientation] = useState("portrait");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(initialTweet?.id);
   const [draft, setDraft] = useState(() => createDraft(initialTweet));
@@ -233,7 +234,8 @@ export function App() {
     const needle = backgroundQuery.trim().toLowerCase();
     return backgrounds.filter((item) => !needle || `${item.name} ${item.tags}`.toLowerCase().includes(needle));
   }, [backgroundQuery]);
-  useEffect(() => setExported(false), [mode, outputMode, selectedId, draft, fontSize, cardTheme, background, overlay, cardScale, cardPosition, metricsTick]);
+  useEffect(() => setExported(false), [mode, outputMode, orientation, selectedId, draft, fontSize, cardTheme, background, overlay, cardScale, cardPosition, metricsTick]);
+  useEffect(() => setCardPosition({ x: 0, y: 0 }), [orientation]);
   useEffect(() => { setPublishCopy(""); setCopyStatus(""); }, [mode, selectedId, draft]);
 
   function rewriteDraft(tweet = selected, style = draftStyle, nextVariant = draftVariant) { setDraftVariant(nextVariant); setDraft(createDraft(tweet, style, nextVariant)); }
@@ -287,9 +289,13 @@ export function App() {
     const drag = dragStateRef.current;
     if (!drag || drag.pointerId !== event.pointerId || !exportRef.current) return;
     const rect = exportRef.current.getBoundingClientRect();
-    const nextX = drag.origin.x + (event.clientX - drag.startX) * (720 / rect.width);
-    const nextY = drag.origin.y + (event.clientY - drag.startY) * (960 / rect.height);
-    setCardPosition({ x: Math.max(-260, Math.min(260, nextX)), y: Math.max(-360, Math.min(360, nextY)) });
+    const canvasWidth = orientation === "landscape" ? 960 : 720;
+    const canvasHeight = orientation === "landscape" ? 720 : 960;
+    const nextX = drag.origin.x + (event.clientX - drag.startX) * (canvasWidth / rect.width);
+    const nextY = drag.origin.y + (event.clientY - drag.startY) * (canvasHeight / rect.height);
+    const maxX = orientation === "landscape" ? 380 : 260;
+    const maxY = orientation === "landscape" ? 260 : 360;
+    setCardPosition({ x: Math.max(-maxX, Math.min(maxX, nextX)), y: Math.max(-maxY, Math.min(maxY, nextY)) });
   }
   function stopDragging(event) {
     if (dragStateRef.current?.pointerId === event.pointerId) dragStateRef.current = null;
@@ -349,12 +355,14 @@ export function App() {
   }
   async function downloadImage() {
     const fileLabel = mode === "history" ? selected.date : new Date().toISOString().slice(0, 10);
-    const filename = outputMode === "poster" ? `抖音图文-${fileLabel}.png` : `推文卡片-${fileLabel}.png`;
+    const direction = orientation === "landscape" ? "横版" : "竖版";
+    const filename = outputMode === "poster" ? `抖音图文-${direction}-${fileLabel}.png` : `推文卡片-${direction}-${fileLabel}.png`;
     return exportNode(exportRef.current, filename, outputMode === "poster" ? "#161616" : cardTheme === "light" ? "#ffffff" : "#000000");
   }
   async function exportDirectCard() {
     const fileLabel = mode === "history" ? selected.date : new Date().toISOString().slice(0, 10);
-    return exportNode(directCardRef.current, `纯推文卡片-${fileLabel}.png`, cardTheme === "light" ? "#ffffff" : "#000000");
+    const direction = orientation === "landscape" ? "横版" : "竖版";
+    return exportNode(directCardRef.current, `纯推文卡片-${direction}-${fileLabel}.png`, cardTheme === "light" ? "#ffffff" : "#000000");
   }
 
   const hasEditor = mode === "draft" || mode === "sources";
@@ -381,7 +389,7 @@ export function App() {
         </section>}
         {mode === "sources" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>调整生成内容</h2><p>保留事实，改成你自己真实说话的方式</p></div></div><textarea value={sourceDraft} onChange={(event) => setSourceDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{sourceDraft.length} 字</span><button className="secondary-button" onClick={() => setSourceDraft(createSourceDraft(selectedSource))}><Sparkle weight="fill" /> 重新生成</button></div></section>}
         {mode === "draft" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>选择改写感觉</h2><p>不是换一句话，而是整篇换结构</p></div></div><div className="rewrite-style-pills">{rewriteStyles.map((style) => <button key={style.id} className={draftStyle === style.id ? "active" : ""} onClick={() => chooseDraftStyle(style.id)}>{style.label}</button>)}</div><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{draft.length} 字</span><button className="secondary-button" onClick={() => rewriteDraft(selected, draftStyle, draftVariant + 1)}><Shuffle weight="fill" /> 换一种写法</button></div><p className="rewrite-note">内容只营造“尽快真正用上AI”的认知，不写收益承诺、诱导购买或无法核实的个人经历。</p></section>}
-        <section className="panel-section output-section"><div className="section-heading compact"><span className="step-number">{outputStep}</span><div><h2>选择发布样式</h2><p>纯卡片，或抖音 3:4 背景图成品</p></div></div><div className="output-picker"><button className={outputMode === "poster" ? "active" : ""} onClick={() => setOutputMode("poster")}><ImageSquare weight="fill" /><strong>抖音竖图</strong><span>下载后直接上传</span></button><button className={outputMode === "card" ? "active" : ""} onClick={() => setOutputMode("card")}><BookmarkSimple weight="fill" /><strong>纯推文卡片</strong><span>保留原来的排版</span></button></div></section>
+        <section className="panel-section output-section"><div className="section-heading compact"><span className="step-number">{outputStep}</span><div><h2>选择发布样式</h2><p>先选成品类型，再选横版或竖版</p></div></div><div className="output-picker"><button className={outputMode === "poster" ? "active" : ""} onClick={() => setOutputMode("poster")}><ImageSquare weight="fill" /><strong>背景图成品</strong><span>卡片叠加背景</span></button><button className={outputMode === "card" ? "active" : ""} onClick={() => setOutputMode("card")}><BookmarkSimple weight="fill" /><strong>纯推文卡片</strong><span>没有额外背景</span></button></div><div className="orientation-control"><span>图片方向</span><div className="orientation-picker" role="group" aria-label="选择图片方向"><button type="button" className={orientation === "portrait" ? "active" : ""} onClick={() => setOrientation("portrait")}><i className="orientation-icon portrait" />竖版</button><button type="button" className={orientation === "landscape" ? "active" : ""} onClick={() => setOrientation("landscape")}><i className="orientation-icon landscape" />横版</button></div><small>{outputMode === "poster" ? (orientation === "portrait" ? "3:4，适合抖音图文" : "4:3，适合横版内容") : "卡片宽度和文字大小会按方向自动适配"}</small></div></section>
         {outputMode === "poster" && <section className="panel-section background-section">
           <div className="section-heading compact"><span className="step-number">{backgroundStep}</span><div><h2>选择背景</h2><p>内置图库、本地上传、网络图片都能用</p></div></div>
           <label className="search-box background-search"><MagnifyingGlass /><input value={backgroundQuery} onChange={(event) => setBackgroundQuery(event.target.value)} placeholder="搜：香港、城市、夜景、山海" /></label>
@@ -402,11 +410,11 @@ export function App() {
         </section>
       </aside>
       <section className="preview-panel">
-        <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? "抖音 3:4 成品预览" : "纯推文卡片预览"}</strong></div><div className="toolbar-actions">{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}{mode === "sources" && <a href={selectedSource.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> 查看来源</a>}<button type="button" className="ghost-button" onClick={() => setMetricsTick((t) => t + 1)}><ArrowsClockwise /> 换一组数据</button></div></div>
-        <div className={`preview-stage ${outputMode}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale * posterFitScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} text={activeText} fontSize={adaptivePosterFontSize} metrics={metrics} cardTheme={cardTheme} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} />}</div>
+        <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? `${orientation === "portrait" ? "竖版 3:4" : "横版 4:3"}成品预览` : `${orientation === "portrait" ? "竖版" : "横版"}纯推文卡片预览`}</strong></div><div className="toolbar-actions">{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}{mode === "sources" && <a href={selectedSource.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> 查看来源</a>}<button type="button" className="ghost-button" onClick={() => setMetricsTick((t) => t + 1)}><ArrowsClockwise /> 换一组数据</button></div></div>
+        <div className={`preview-stage ${outputMode} ${orientation}`}>{outputMode === "poster" ? <div className={`douyin-poster ${orientation}`} ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className="poster-card-wrap" style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale * posterFitScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} text={activeText} fontSize={adaptivePosterFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} poster /></div><div className="poster-tip">TIANCE MATRIX · 认知 / 创业 / AI</div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} />}</div>
         <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{isMobile ? "生成后在系统面板选择“存储图像”，即可保存到相册。" : outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? (isMobile ? "已生成" : "已下载") : (isMobile ? "保存到相册" : "一键下载成品")}</button></div></div>
       </section>
     </div>
-    <div className="direct-card-export" aria-hidden="true"><TweetCard cardRef={directCardRef} mode={mode} selected={selected} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} /></div>
+    <div className="direct-card-export" aria-hidden="true"><TweetCard cardRef={directCardRef} mode={mode} selected={selected} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} /></div>
   </main>;
 }

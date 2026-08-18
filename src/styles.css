@@ -542,6 +542,50 @@ a:focus-visible {
 .output-picker button span { color: var(--muted); font-size: 10px; line-height: 1.4; }
 .output-picker button.active { border-color: var(--orange); background: var(--orange-soft); box-shadow: inset 0 0 0 1px var(--orange); color: #bb3e0d; }
 
+.orientation-control {
+  margin-top: 13px;
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.orientation-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.orientation-picker button {
+  min-height: 40px;
+  border: 1px solid #bcb5a9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ink);
+  background: #fffefa;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.orientation-picker button.active {
+  border-color: var(--orange);
+  box-shadow: inset 0 0 0 1px var(--orange);
+  color: #bb3e0d;
+  background: var(--orange-soft);
+}
+
+.orientation-icon {
+  border: 2px solid currentColor;
+  display: inline-block;
+}
+.orientation-icon.portrait { width: 10px; height: 15px; }
+.orientation-icon.landscape { width: 16px; height: 11px; }
+.orientation-control small { color: var(--muted); font-size: 9px; font-weight: 500; }
+
 .background-search { width: 100%; }
 
 .background-grid {
@@ -820,6 +864,11 @@ a:focus-visible {
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
 }
 
+.douyin-poster.landscape {
+  width: 960px;
+  height: 720px;
+}
+
 .poster-background,
 .poster-overlay {
   position: absolute;
@@ -840,6 +889,8 @@ a:focus-visible {
   touch-action: none;
   user-select: none;
 }
+.douyin-poster.landscape .poster-card-wrap,
+.douyin-poster.landscape .poster-tweet-card { width: 720px; }
 .poster-card-wrap:active { cursor: grabbing; }
 .poster-tweet-card {
   width: 640px;
@@ -871,6 +922,8 @@ a:focus-visible {
   font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42);
 }
+.tweet-card.card-portrait:not(.poster-tweet-card) { width: 520px; }
+.tweet-card.card-landscape:not(.poster-tweet-card) { width: 760px; }
 
 .tweet-card.theme-dark {
   color: #e7e9ea;
@@ -1047,6 +1100,9 @@ a:focus-visible {
 
   .douyin-poster { width: 600px; height: 800px; }
   .poster-card-wrap, .poster-tweet-card { width: 540px; }
+  .douyin-poster.landscape { width: 760px; height: 570px; }
+  .douyin-poster.landscape .poster-card-wrap,
+  .douyin-poster.landscape .poster-tweet-card { width: 630px; }
 }
 
 @media (max-width: 860px) {
@@ -1071,7 +1127,12 @@ a:focus-visible {
   }
 
   .douyin-poster { width: min(720px, calc(100vw - 44px)); height: auto; aspect-ratio: 3 / 4; }
+  .douyin-poster.landscape { width: min(960px, calc(100vw - 44px)); height: auto; aspect-ratio: 4 / 3; }
   .poster-card-wrap, .poster-tweet-card { width: calc(100% - 46px); }
+  .douyin-poster.landscape .poster-card-wrap,
+  .douyin-poster.landscape .poster-tweet-card { width: calc(100% - 64px); }
+  .tweet-card.card-portrait:not(.poster-tweet-card),
+  .tweet-card.card-landscape:not(.poster-tweet-card) { width: min(100%, calc(100vw - 44px)); }
 }
 
 @media (max-width: 620px) {
