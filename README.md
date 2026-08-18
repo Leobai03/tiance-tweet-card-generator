@@ -59,6 +59,12 @@ npm run test:sites
 - 不要把他人的内容替换成自己的署名，也不要编造使用效果或收入结果。
 - 仓库内图片素材请在商业使用前自行确认授权范围；你也可以替换成自己的图片。
 
+`npm run build` 默认使用仓库自带的公开推文数据。如果你拥有自己的 X 数据归档，可以把包含 `tweets.js` 和 `note-tweet.js` 的目录传给同步脚本：
+
+```bash
+TIANCE_X_ARCHIVE_DIR=/你的归档/data npm run data:sync
+```
+
 ## 技术栈
 
 - React 19

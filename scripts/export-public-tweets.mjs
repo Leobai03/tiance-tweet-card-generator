@@ -5,7 +5,18 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const archiveRoot = path.resolve(projectRoot, "../..");
-const dataRoot = path.join(archiveRoot, "data");
+const dataRoot = process.env.TIANCE_X_ARCHIVE_DIR
+  ? path.resolve(process.env.TIANCE_X_ARCHIVE_DIR)
+  : path.join(archiveRoot, "data");
+const outputPath = path.join(projectRoot, "src", "tweets.json");
+const requiredArchiveFiles = ["tweets.js", "note-tweet.js"];
+
+if (!requiredArchiveFiles.every((filename) => fs.existsSync(path.join(dataRoot, filename)))) {
+  const bundled = JSON.parse(fs.readFileSync(outputPath, "utf8"));
+  if (!Array.isArray(bundled) || bundled.length === 0) throw new Error("Bundled src/tweets.json is missing or invalid");
+  console.log(`X archive not found; using ${bundled.length} bundled public posts from ${outputPath}`);
+  process.exit(0);
+}
 
 function loadArchive(filename, target) {
   const source = fs.readFileSync(path.join(dataRoot, filename), "utf8");
@@ -62,6 +73,5 @@ const records = tweets
   })
   .sort((a, b) => b.engagement - a.engagement || b.date.localeCompare(a.date));
 
-const outputPath = path.join(projectRoot, "src", "tweets.json");
 fs.writeFileSync(outputPath, `${JSON.stringify(records, null, 2)}\n`, "utf8");
 console.log(`Exported ${records.length} public original posts to ${outputPath}`);
