@@ -898,19 +898,6 @@ a:focus-visible {
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.48);
 }
 .poster-tweet-card .tweet-body { min-height: 0; }
-.poster-tip {
-  position: absolute;
-  z-index: 2;
-  right: 26px;
-  bottom: 20px;
-  padding: 7px 10px;
-  color: rgba(255,255,255,0.9);
-  background: rgba(0,0,0,0.38);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.1em;
-}
-
 .tweet-card {
   position: relative;
   width: 620px;
@@ -998,21 +985,26 @@ a:focus-visible {
   width: 620px;
   pointer-events: none;
 }
-.direct-card-export .tweet-card { width: 620px; box-shadow: none; }
+.direct-card-export .tweet-card { box-shadow: none; }
+.direct-card-export .tweet-card.card-portrait { width: 520px; }
+.direct-card-export .tweet-card.card-landscape { width: 760px; }
 
 .tweet-metrics {
   min-height: 30px;
   padding-left: 54px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: center;
-  gap: 40px;
+  gap: 12px;
   color: #71767b;
 }
 
 .tweet-metrics span {
+  min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .tweet-metrics svg {
@@ -1021,6 +1013,7 @@ a:focus-visible {
 }
 
 .tweet-metrics em {
+  min-width: 0;
   font-size: 13px;
   font-style: normal;
 }
