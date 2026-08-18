@@ -6,7 +6,20 @@ import {
   Repeat, SealCheck, ShieldCheck, Shuffle, Sparkle, UploadSimple, WarningCircle,
 } from "@phosphor-icons/react";
 import tweets from "./tweets.json";
-import contentSources from "./content-sources.json";
+import baseContentSources from "./content-sources.json";
+import feishuContentSources from "./feishu-content-sources.json";
+
+function interleaveContentSources(featured, base) {
+  const mixed = [];
+  const basePerFeatured = 2;
+  for (let index = 0; index < Math.max(featured.length, Math.ceil(base.length / basePerFeatured)); index += 1) {
+    if (featured[index]) mixed.push(featured[index]);
+    mixed.push(...base.slice(index * basePerFeatured, index * basePerFeatured + basePerFeatured));
+  }
+  return mixed;
+}
+
+const contentSources = interleaveContentSources(feishuContentSources, baseContentSources);
 
 const avatar = "/assets/tiance-avatar.jpg";
 const initialTweet = tweets.find((tweet) => tweet.id === "2000941227961733492") || tweets[0];

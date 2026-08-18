@@ -6,7 +6,7 @@
 
 ## 功能
 
-- 1,524 条中文 AI 内容素材，支持分类、搜索和随机抽取
+- 2,102 条中文成品素材，支持分类、搜索和随机抽取；其中 578 条提炼自天策飞书核心内容库
 - 566 条公开历史推文，可搜索和改写
 - 8 种 AI 主题改写结构
 - 白色、黑色推文卡片
@@ -51,7 +51,8 @@ npm run test:sites
 - 修改头像：替换 `public/assets/tiance-avatar.jpg`
 - 修改名字和账号：编辑 `src/App.jsx` 中的账号信息
 - 修改历史内容：替换 `src/tweets.json`
-- 修改 AI 素材库：编辑 `src/content-sources.json`
+- 修改基础 AI 素材库：编辑 `src/content-sources.json`
+- 更新飞书精选素材：运行 `node scripts/extract-feishu-materials.mjs <lark-fetch.json>`，结果写入 `src/feishu-content-sources.json`
 - 修改背景：替换 `public/backgrounds/` 中的图片并更新 `src/App.jsx`
 
 ## 内容与数据边界
