@@ -254,7 +254,17 @@ export function App() {
     reader.onload = () => setBackground(String(reader.result));
     reader.readAsDataURL(file);
   }
-  function applyBackgroundUrl() { const value = backgroundUrl.trim(); if (value) setBackground(value); }
+  function applyBackgroundUrl() {
+    const value = backgroundUrl.trim();
+    if (!value) return;
+    try {
+      const parsed = new URL(value);
+      if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("unsupported protocol");
+      setBackground(`/api/image-proxy?url=${encodeURIComponent(parsed.href)}`);
+    } catch {
+      window.alert("请粘贴以 http:// 或 https:// 开头的图片地址。");
+    }
+  }
   function generatePublishCopy() { const next = buildPublishCopy(activeText); setPublishCopy(next); setCopyStatus(""); return next; }
   async function copyDescription() {
     const value = publishCopy || generatePublishCopy();

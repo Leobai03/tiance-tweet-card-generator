@@ -61,6 +61,36 @@ test("does not turn missing API or write requests into the app shell", async () 
   }
 });
 
+test("proxies a valid remote image through the same origin", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (request) => {
+    assert.equal(new URL(request instanceof Request ? request.url : String(request)).hostname, "images.example.com");
+    return new Response("image-bytes", { headers: { "content-type": "image/jpeg" } });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://example.test/api/image-proxy?url=https%3A%2F%2Fimages.example.com%2Fphoto.jpg"), { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) } });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "image/jpeg");
+    assert.equal(await response.text(), "image-bytes");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("rejects private and non-image proxy targets", async () => {
+  const privateResponse = await worker.fetch(new Request("https://example.test/api/image-proxy?url=http%3A%2F%2F127.0.0.1%2Fsecret"), { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) } });
+  assert.equal(privateResponse.status, 400);
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("page", { headers: { "content-type": "text/html" } });
+  try {
+    const pageResponse = await worker.fetch(new Request("https://example.test/api/image-proxy?url=https%3A%2F%2Fexample.com%2Fpage"), { ASSETS: { fetch: async () => new Response("missing", { status: 404 }) } });
+    assert.equal(pageResponse.status, 422);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("emits the files required by Sites packaging", async () => {
   await access(new URL("../dist/client/index.html", import.meta.url));
   await access(new URL("../dist/server/index.js", import.meta.url));
