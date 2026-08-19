@@ -864,11 +864,6 @@ a:focus-visible {
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
 }
 
-.douyin-poster.landscape {
-  width: 960px;
-  height: 720px;
-}
-
 .poster-background,
 .poster-overlay {
   position: absolute;
@@ -889,11 +884,11 @@ a:focus-visible {
   touch-action: none;
   user-select: none;
 }
-.douyin-poster.landscape .poster-card-wrap,
-.douyin-poster.landscape .poster-tweet-card { width: 720px; }
+.poster-card-wrap.wrap-portrait { width: 500px; }
+.poster-card-wrap.wrap-landscape { width: 640px; }
 .poster-card-wrap:active { cursor: grabbing; }
 .poster-tweet-card {
-  width: 640px;
+  width: 100%;
   border-radius: 4px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.48);
 }
@@ -985,6 +980,17 @@ a:focus-visible {
   width: 620px;
   pointer-events: none;
 }
+.poster-export-surface,
+.stable-export-host {
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: -20000px;
+  pointer-events: none;
+}
+.poster-export-surface .douyin-poster { width: 720px; height: 960px; aspect-ratio: auto; }
+.poster-export-surface .poster-card-wrap.wrap-portrait { width: 500px; }
+.poster-export-surface .poster-card-wrap.wrap-landscape { width: 640px; }
 .direct-card-export .tweet-card { box-shadow: none; }
 .direct-card-export .tweet-card.card-portrait { width: 520px; }
 .direct-card-export .tweet-card.card-landscape { width: 760px; }
@@ -1093,9 +1099,8 @@ a:focus-visible {
 
   .douyin-poster { width: 600px; height: 800px; }
   .poster-card-wrap, .poster-tweet-card { width: 540px; }
-  .douyin-poster.landscape { width: 760px; height: 570px; }
-  .douyin-poster.landscape .poster-card-wrap,
-  .douyin-poster.landscape .poster-tweet-card { width: 630px; }
+  .poster-card-wrap.wrap-portrait { width: 440px; }
+  .poster-card-wrap.wrap-landscape { width: 540px; }
 }
 
 @media (max-width: 860px) {
@@ -1120,10 +1125,8 @@ a:focus-visible {
   }
 
   .douyin-poster { width: min(720px, calc(100vw - 44px)); height: auto; aspect-ratio: 3 / 4; }
-  .douyin-poster.landscape { width: min(960px, calc(100vw - 44px)); height: auto; aspect-ratio: 4 / 3; }
-  .poster-card-wrap, .poster-tweet-card { width: calc(100% - 46px); }
-  .douyin-poster.landscape .poster-card-wrap,
-  .douyin-poster.landscape .poster-tweet-card { width: calc(100% - 64px); }
+  .poster-card-wrap.wrap-portrait { width: calc(100% - 92px); }
+  .poster-card-wrap.wrap-landscape { width: calc(100% - 46px); }
   .tweet-card.card-portrait:not(.poster-tweet-card),
   .tweet-card.card-landscape:not(.poster-tweet-card) { width: min(100%, calc(100vw - 44px)); }
 }
