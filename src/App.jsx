@@ -21,7 +21,7 @@ function interleaveContentSources(featured, base) {
 
 const contentSources = interleaveContentSources(feishuContentSources, baseContentSources);
 
-const avatar = "/assets/tiance-avatar.jpg";
+const defaultAvatar = "/assets/tiance-avatar.jpg";
 const initialTweet = tweets.find((tweet) => tweet.id === "2000941227961733492") || tweets[0];
 const backgrounds = [
   { id: "city-1", name: "香港海边", tags: "香港 城市 海边 蓝天", src: "/backgrounds/city-1.jpg" },
@@ -126,15 +126,21 @@ function createSourceDraft(source) {
   return `${source.title}\n\n${source.insight}\n\n${source.angle}\n\n${source.action || "别急着收藏更多工具。先找一件你今天真的要完成的事，用AI跑完一次，再根据结果继续调整。"}`;
 }
 
-function randomBetween(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function seededNumber(key, min, max) {
+  let hash = 2166136261;
+  for (const character of String(key)) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return min + ((hash >>> 0) % (max - min + 1));
 }
-function buildDemoMetrics() {
+function buildDemoMetrics(key, variant = 0) {
   return {
-    replies: randomBetween(120, 480),
-    reposts: randomBetween(300, 1400),
-    likes: randomBetween(4200, 18000),
-    views: randomBetween(280000, 4200000),
+    replies: seededNumber(`${key}-${variant}-replies`, 120, 480),
+    reposts: seededNumber(`${key}-${variant}-reposts`, 300, 1400),
+    likes: seededNumber(`${key}-${variant}-likes`, 4200, 18000),
+    views: seededNumber(`${key}-${variant}-views`, 280000, 4200000),
+    bookmarks: seededNumber(`${key}-${variant}-bookmarks`, 520, 5600),
   };
 }
 function buildPublishCopy(text) {
@@ -211,12 +217,11 @@ async function createStableExportClone(node) {
   }
 }
 
-function TweetCard({ cardRef, mode, selected, text, fontSize, metrics, cardTheme, orientation = "portrait", poster = false }) {
-  const isHistory = mode === "history";
+function TweetCard({ cardRef, text, fontSize, metrics, cardTheme, orientation = "portrait", poster = false, profile }) {
   return <article className={`tweet-card theme-${cardTheme} card-${orientation} ${poster ? "poster-tweet-card" : ""}`} ref={cardRef} aria-label="推文图片预览">
     <header className="tweet-header">
-      <img className="tweet-avatar" src={avatar} alt="天策头像" />
-      <div className="tweet-identity"><div className="tweet-name-line"><strong>天策</strong><SealCheck weight="fill" className="verified-icon" /><span>@Leobai825</span>{isHistory && <><span>·</span><span>{formatDate(selected.date)}</span></>}</div></div>
+      <img className="tweet-avatar" src={profile.avatar} alt={`${profile.name}头像`} />
+      <div className="tweet-identity"><div className="tweet-name-line"><strong>{profile.name}</strong><SealCheck weight="fill" className="verified-icon" /><span>{profile.handle}</span><span>·</span><span>{formatDate(profile.date)}</span></div></div>
       <div className="tweet-actions-top" aria-hidden="true"><DotsThree size={25} weight="bold" /></div>
     </header>
     <div className="tweet-body" style={{ fontSize: `${fontSize}px` }}>{text}</div>
@@ -225,6 +230,7 @@ function TweetCard({ cardRef, mode, selected, text, fontSize, metrics, cardTheme
       <span><Repeat /><em>{formatMetric(metrics.reposts)}</em></span>
       <span className="liked"><Heart weight="fill" /><em>{formatMetric(metrics.likes)}</em></span>
       <span><ChartBar /><em>{formatMetric(metrics.views)}</em></span>
+      <span><BookmarkSimple /><em>{formatMetric(metrics.bookmarks)}</em></span>
     </footer>
   </article>;
 }
@@ -255,6 +261,10 @@ export function App() {
   const [publishCopy, setPublishCopy] = useState("");
   const [metricsTick, setMetricsTick] = useState(0);
   const [copyStatus, setCopyStatus] = useState("");
+  const [profileAvatar, setProfileAvatar] = useState(defaultAvatar);
+  const [profileName, setProfileName] = useState("天策");
+  const [profileHandle, setProfileHandle] = useState("@Leobai825");
+  const [publishDate, setPublishDate] = useState(() => new Date().toISOString().slice(0, 10));
   const exportRef = useRef(null);
   const posterExportRef = useRef(null);
   const directCardRef = useRef(null);
@@ -263,15 +273,26 @@ export function App() {
   const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const selected = useMemo(() => tweets.find((tweet) => tweet.id === selectedId) || tweets[0], [selectedId]);
   const selectedSource = useMemo(() => contentSources.find((source) => source.id === selectedSourceId) || contentSources[0], [selectedSourceId]);
-  const metrics = useMemo(() => buildDemoMetrics(), [selectedId, metricsTick]);
+  const metricKey = mode === "sources" ? selectedSourceId : selectedId;
+  const metrics = useMemo(() => buildDemoMetrics(metricKey, metricsTick), [metricKey, metricsTick]);
+  const profile = useMemo(() => ({
+    avatar: profileAvatar,
+    name: profileName.trim() || "未命名",
+    handle: `@${profileHandle.trim().replace(/^@+/, "") || "username"}`,
+    date: publishDate || new Date().toISOString().slice(0, 10),
+  }), [profileAvatar, profileName, profileHandle, publishDate]);
   const activeText = mode === "history" ? selected.text : mode === "sources" ? sourceDraft : draft;
   const adaptiveCardFontSize = getAdaptiveFontSize(activeText, fontSize, false);
   const adaptivePosterFontSize = getAdaptiveFontSize(activeText, fontSize, true);
   const posterFitScale = activeText.length > 900 ? 0.62 : activeText.length > 700 ? 0.7 : activeText.length > 520 ? 0.78 : activeText.length > 360 ? 0.86 : 1;
   const sourceCategories = ["全部", ...new Set(contentSources.map((source) => source.category))];
+  const sourceCategoryCounts = useMemo(() => contentSources.reduce((counts, source) => {
+    counts[source.category] = (counts[source.category] || 0) + 1;
+    return counts;
+  }, {}), []);
   const sourceResults = useMemo(() => {
     const needle = sourceQuery.trim().toLowerCase();
-    return contentSources.filter((source) => (sourceCategory === "全部" || source.category === sourceCategory) && (!needle || `${source.title} ${source.insight} ${source.angle} ${source.productFit.join(" ")}`.toLowerCase().includes(needle)));
+    return contentSources.filter((source) => (sourceCategory === "全部" || source.category === sourceCategory) && (!needle || `${source.title} ${source.insight} ${source.angle} ${source.draft || ""} ${source.action || ""} ${source.sourceName || ""} ${(source.tags || []).join(" ")} ${(source.productFit || []).join(" ")}`.toLowerCase().includes(needle)));
   }, [sourceCategory, sourceQuery]);
   const visibleSourceResults = sourceResults.slice(0, 100);
   const results = useMemo(() => {
@@ -283,12 +304,12 @@ export function App() {
     const needle = backgroundQuery.trim().toLowerCase();
     return backgrounds.filter((item) => !needle || `${item.name} ${item.tags}`.toLowerCase().includes(needle));
   }, [backgroundQuery]);
-  useEffect(() => setExported(false), [mode, outputMode, orientation, selectedId, draft, fontSize, cardTheme, background, overlay, cardScale, cardPosition, metricsTick]);
+  useEffect(() => setExported(false), [mode, outputMode, orientation, selectedId, draft, fontSize, cardTheme, background, overlay, cardScale, cardPosition, metricsTick, profile]);
   useEffect(() => setCardPosition({ x: 0, y: 0 }), [orientation]);
   useEffect(() => { setPublishCopy(""); setCopyStatus(""); }, [mode, selectedId, draft]);
 
   function rewriteDraft(tweet = selected, style = draftStyle, nextVariant = draftVariant) { setDraftVariant(nextVariant); setDraft(createDraft(tweet, style, nextVariant)); }
-  function selectTweet(tweet) { setSelectedId(tweet.id); if (mode === "draft") rewriteDraft(tweet); }
+  function selectTweet(tweet) { setSelectedId(tweet.id); setPublishDate(tweet.date); if (mode === "draft") rewriteDraft(tweet); }
   function switchMode(nextMode) { setMode(nextMode); if (nextMode === "draft") rewriteDraft(selected); }
   function chooseDraftStyle(style) { setDraftStyle(style); rewriteDraft(selected, style, draftVariant + 1); }
   function selectSource(source) { setSelectedSourceId(source.id); setSourceDraft(createSourceDraft(source)); }
@@ -303,6 +324,13 @@ export function App() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => setBackground(String(reader.result));
+    reader.readAsDataURL(file);
+  }
+  function loadProfileAvatar(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setProfileAvatar(String(reader.result));
     reader.readAsDataURL(file);
   }
   function applyBackgroundUrl() {
@@ -432,7 +460,7 @@ export function App() {
         {mode === "sources" && <section className="panel-section source-library-section">
           <div className="section-heading compact"><span className="step-number">02</span><div><h2>{contentSources.length.toLocaleString("zh-CN")} 条中文成品素材</h2><p>当前筛选 {sourceResults.length} 条，选一个就能生成</p></div></div>
           <div className="search-row"><label className="search-box"><MagnifyingGlass /><input value={sourceQuery} onChange={(event) => setSourceQuery(event.target.value)} placeholder="搜：效率、赚钱、Codex、Token" /></label><button className="icon-button" onClick={pickRandomSource} title="从当前结果随机一条" aria-label="随机一条素材"><Shuffle /></button></div>
-          <div className="category-pills">{sourceCategories.map((category) => <button key={category} className={sourceCategory === category ? "active" : ""} onClick={() => setSourceCategory(category)}>{category}</button>)}</div>
+          <div className="category-pills">{sourceCategories.map((category) => <button key={category} className={sourceCategory === category ? "active" : ""} onClick={() => setSourceCategory(category)}>{category} <em>{category === "全部" ? contentSources.length : sourceCategoryCounts[category]}</em></button>)}</div>
           <div className="source-list">{visibleSourceResults.map((source) => <article key={source.id} className={`source-item ${source.id === selectedSource.id ? "selected" : ""}`}><button className="source-main" onClick={() => selectSource(source)}><span className="source-meta"><b>{source.category}</b><em>{source.productFit.join(" · ")}</em></span><strong>{source.title}</strong><p>{source.insight}</p></button><a href={source.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> {source.sourceName}</a></article>)}</div>
           <p className="source-note"><ShieldCheck weight="fill" /> 为保证页面流畅，每次展示前 100 条，搜索和分类会检索完整素材库。数据、个人经历和收入在发布前必须复核，不得虚构。</p>
         </section>}
@@ -455,7 +483,7 @@ export function App() {
             <div className="drag-help"><span>在右侧直接拖动卡片调整位置</span><button onClick={resetCardPlacement}>居中重置</button></div>
           </div>
         </section>}
-        <section className="panel-section visual-section"><div className="section-heading compact"><span className="step-number">{finishStep}</span><div><h2>检查并下载</h2><p>右侧看到的就是最终图片</p></div></div><div className="card-theme-control"><span>卡片背景</span><div className="card-theme-picker" role="group" aria-label="选择卡片背景"><button type="button" className={cardTheme === "light" ? "active" : ""} onClick={() => setCardTheme("light")}><i className="theme-swatch light" />白色</button><button type="button" className={cardTheme === "dark" ? "active" : ""} onClick={() => setCardTheme("dark")}><i className="theme-swatch dark" />黑色</button></div></div><label className="range-label"><span>正文字号 <b>{fontSize}px</b>{adaptiveCardFontSize < fontSize && <em>长文自动适配为 {adaptiveCardFontSize}px</em>}</span><input type="range" min="13" max="22" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label><button className="direct-export-button" onClick={exportDirectCard} disabled={exporting}><BookmarkSimple weight="fill" /><span><strong>{isMobile ? "保存纯推文卡片到相册" : "直接导出纯推文卡片"}</strong><small>没有海报背景，尺寸随正文自动增高</small></span></button>{outputMode === "poster" && activeText.length > 700 && <div className="length-warning"><WarningCircle weight="fill" /><span>这条内容很长，系统已经自动缩小卡片。纯卡片导出不会截断，抖音竖图建议适当精简。</span></div>}</section>
+        <section className="panel-section visual-section"><div className="section-heading compact"><span className="step-number">{finishStep}</span><div><h2>检查并下载</h2><p>右侧看到的就是最终图片</p></div></div><div className="profile-editor"><div className="profile-avatar-editor"><img src={profileAvatar} alt="当前头像" /><label><UploadSimple /> 自定义头像<input type="file" accept="image/*" onChange={loadProfileAvatar} /></label></div><div className="profile-fields"><label><span>显示名称</span><input value={profileName} maxLength={30} onChange={(event) => setProfileName(event.target.value)} /></label><label><span>用户名</span><input value={profileHandle} maxLength={32} onChange={(event) => setProfileHandle(event.target.value)} placeholder="@username" /></label><label><span>发布日期</span><input type="date" value={publishDate} onChange={(event) => setPublishDate(event.target.value)} /></label></div></div><div className="card-theme-control"><span>卡片背景</span><div className="card-theme-picker" role="group" aria-label="选择卡片背景"><button type="button" className={cardTheme === "light" ? "active" : ""} onClick={() => setCardTheme("light")}><i className="theme-swatch light" />白色</button><button type="button" className={cardTheme === "dark" ? "active" : ""} onClick={() => setCardTheme("dark")}><i className="theme-swatch dark" />黑色</button></div></div><label className="range-label"><span>正文字号 <b>{fontSize}px</b>{adaptiveCardFontSize < fontSize && <em>长文自动适配为 {adaptiveCardFontSize}px</em>}</span><input type="range" min="13" max="22" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label><button className="direct-export-button" onClick={exportDirectCard} disabled={exporting}><BookmarkSimple weight="fill" /><span><strong>{isMobile ? "保存纯推文卡片到相册" : "直接导出纯推文卡片"}</strong><small>没有海报背景，尺寸随正文自动增高</small></span></button>{outputMode === "poster" && activeText.length > 700 && <div className="length-warning"><WarningCircle weight="fill" /><span>这条内容很长，系统已经自动缩小卡片。纯卡片导出不会截断，抖音竖图建议适当精简。</span></div>}</section>
         <section className="panel-section publish-copy-section">
           <div className="section-heading compact"><span className="step-number">{String(Number(finishStep) + 1).padStart(2, "0")}</span><div><h2>准备发布文案和话题</h2><p>自动生成一句文案 + 3 个相关标签</p></div></div>
           {publishCopy ? <div className="publish-copy-result">{publishCopy}</div> : <div className="publish-copy-empty">点击下方按钮，根据当前推文自动生成。</div>}
@@ -465,11 +493,11 @@ export function App() {
       </aside>
       <section className="preview-panel">
         <div className="preview-toolbar"><div><span className={`status-dot ${mode}`} /><strong>{outputMode === "poster" ? `竖版 3:4 背景 · ${orientation === "portrait" ? "竖版" : "横版"}卡片` : `${orientation === "portrait" ? "竖版" : "横版"}纯推文卡片预览`}</strong></div><div className="toolbar-actions">{mode === "history" && <a href={selected.url} target="_blank" rel="noreferrer"><LinkSimple /> 查看原推</a>}{mode === "sources" && <a href={selectedSource.sourceUrl} target="_blank" rel="noreferrer"><LinkSimple /> 查看来源</a>}<button type="button" className="ghost-button" onClick={() => setMetricsTick((t) => t + 1)}><ArrowsClockwise /> 换一组数据</button></div></div>
-        <div className={`preview-stage ${outputMode} ${orientation}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className={`poster-card-wrap wrap-${orientation}`} style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale * posterFitScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard mode={mode} selected={selected} text={activeText} fontSize={adaptivePosterFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} poster /></div></div> : <TweetCard cardRef={exportRef} mode={mode} selected={selected} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} />}</div>
+        <div className={`preview-stage ${outputMode} ${orientation}`}>{outputMode === "poster" ? <div className="douyin-poster" ref={exportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className={`poster-card-wrap wrap-${orientation}`} style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale * posterFitScale})` }} onPointerDown={startDragging} onPointerMove={dragCard} onPointerUp={stopDragging} onPointerCancel={stopDragging} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}><TweetCard text={activeText} fontSize={adaptivePosterFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} profile={profile} poster /></div></div> : <TweetCard cardRef={exportRef} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} profile={profile} />}</div>
         <div className="export-bar"><div className="export-note"><Check weight="bold" /><span>{isMobile ? "生成后在系统面板选择“存储图像”，即可保存到相册。" : outputMode === "poster" ? "下载图片，再复制发布文案，就能直接发抖音。" : "下载纯推文卡片 PNG。"}</span></div><div className="export-actions"><button className="copy-export-button" onClick={copyDescription}><CopySimple weight="bold" /> 复制发布文案</button><button className="download-button" onClick={downloadImage} disabled={exporting}>{exported ? <Check weight="bold" /> : <DownloadSimple weight="bold" />}{exporting ? "正在生成…" : exported ? (isMobile ? "已生成" : "已下载") : (isMobile ? "保存到相册" : "一键下载成品")}</button></div></div>
       </section>
     </div>
-    <div className="poster-export-surface" aria-hidden="true"><div className="douyin-poster" ref={posterExportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className={`poster-card-wrap wrap-${orientation}`} style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale * posterFitScale})` }}><TweetCard mode={mode} selected={selected} text={activeText} fontSize={adaptivePosterFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} poster /></div></div></div>
-    <div className="direct-card-export" aria-hidden="true"><TweetCard cardRef={directCardRef} mode={mode} selected={selected} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} /></div>
+    <div className="poster-export-surface" aria-hidden="true"><div className="douyin-poster" ref={posterExportRef}><img className="poster-background" src={background} crossOrigin="anonymous" alt="" /><div className="poster-overlay" style={{ background: `rgba(0,0,0,${overlay / 100})` }} /><div className={`poster-card-wrap wrap-${orientation}`} style={{ left: `calc(50% + ${cardPosition.x}px)`, top: `calc(50% + ${cardPosition.y}px)`, transform: `translate(-50%, -50%) scale(${cardScale * posterFitScale})` }}><TweetCard text={activeText} fontSize={adaptivePosterFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} profile={profile} poster /></div></div></div>
+    <div className="direct-card-export" aria-hidden="true"><TweetCard cardRef={directCardRef} text={activeText} fontSize={adaptiveCardFontSize} metrics={metrics} cardTheme={cardTheme} orientation={orientation} profile={profile} /></div>
   </main>;
 }

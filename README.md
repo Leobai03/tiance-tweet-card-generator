@@ -10,6 +10,8 @@
 - 566 条公开历史推文，可搜索和改写
 - 8 种 AI 主题改写结构
 - 白色、黑色推文卡片
+- 自定义头像、显示名称、用户名和发布日期
+- 评论、转发、点赞、浏览、收藏五项稳定展示数据，可一键换一组
 - 抖音 3:4 海报与纯卡片两种输出
 - 无需切换模式即可直接导出纯推文卡片，图片高度随正文自动增长
 - 长文自动调整字号和卡片尺寸，避免正文被截断
@@ -48,8 +50,7 @@ npm run test:sites
 
 ## 自定义成自己的版本
 
-- 修改头像：替换 `public/assets/tiance-avatar.jpg`
-- 修改名字和账号：编辑 `src/App.jsx` 中的账号信息
+- 修改头像、名字和账号：直接在网页的“检查并下载”区域设置；也可以替换默认头像 `public/assets/tiance-avatar.jpg`
 - 修改历史内容：替换 `src/tweets.json`
 - 修改基础 AI 素材库：编辑 `src/content-sources.json`
 - 更新飞书精选素材：运行 `node scripts/extract-feishu-materials.mjs <lark-fetch.json>`，结果写入 `src/feishu-content-sources.json`

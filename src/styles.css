@@ -210,6 +210,13 @@ a:focus-visible {
   color: white;
 }
 
+.category-pills button em {
+  margin-left: 2px;
+  opacity: 0.7;
+  font-style: normal;
+  font-weight: 650;
+}
+
 .source-list {
   max-height: 340px;
   border: 1px solid var(--line);
@@ -643,6 +650,48 @@ a:focus-visible {
 }
 .length-warning svg { flex: 0 0 auto; margin-top: 1px; font-size: 16px; }
 
+.profile-editor {
+  margin-bottom: 16px;
+  padding: 11px;
+  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  background: #f7f4ee;
+}
+
+.profile-avatar-editor {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 8px;
+}
+
+.profile-avatar-editor img {
+  width: 58px;
+  height: 58px;
+  border: 1px solid #bcb5a9;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.profile-avatar-editor label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.profile-avatar-editor input { display: none; }
+.profile-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.profile-fields label:last-child { grid-column: 1 / -1; }
+.profile-fields label { display: grid; gap: 4px; }
+.profile-fields span { color: var(--muted); font-size: 9px; font-weight: 750; }
+.profile-fields input { min-width: 0; height: 34px; padding: 0 8px; border: 1px solid #bcb5a9; background: #fffefa; font-size: 11px; }
+
 .card-theme-control {
   margin-bottom: 16px;
   display: grid;
@@ -999,9 +1048,9 @@ a:focus-visible {
   min-height: 30px;
   padding-left: 54px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: center;
-  gap: 12px;
+  gap: 7px;
   color: #71767b;
 }
 
@@ -1020,7 +1069,7 @@ a:focus-visible {
 
 .tweet-metrics em {
   min-width: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-style: normal;
 }
 
@@ -1161,8 +1210,12 @@ a:focus-visible {
 
   .tweet-metrics {
     padding-left: 0;
-    gap: 20px;
+    gap: 7px;
   }
+
+  .profile-editor { grid-template-columns: 78px minmax(0, 1fr); }
+  .profile-fields { grid-template-columns: 1fr; }
+  .profile-fields label:last-child { grid-column: auto; }
 
   .export-bar {
     padding: 12px;
